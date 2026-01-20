@@ -5,6 +5,11 @@ using StatStock.Infrastructure.Data;
 using StatStock.Infrastructure.Data.Seeders;
 using StatStock.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -27,24 +32,28 @@ try
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    // Identity temporarily disabled due to .NET 10 preview package incompatibilities
-    // The Microsoft.AspNetCore.Identity.EntityFrameworkCore package has breaking changes
-    // that cause TypeLoadException: Missing 'SetPasskeyAsync' method in UserStore
-    // TODO: Re-enable when using .NET 8/9 or when .NET 10 packages are stable
-    
-    /* 
-    builder.Services.AddIdentity<ApplicationIdentityUser, IdentityRole>(options =>
+    // Add Authentication: Cookie for MVC + JWT for API
+    var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";
+    builder.Services.AddAuthentication(options =>
     {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = true;
-        options.Password.RequiredLength = 8;
-        options.User.RequireUniqueEmail = true;
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-    */
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = "/Account/Login";
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
 
     // Add Swagger
     builder.Services.AddEndpointsApiExplorer();
@@ -108,9 +117,9 @@ try
     app.UseHttpsRedirection();
     app.UseRouting();
 
-    // Authentication/Authorization disabled while Identity is disabled
-    // app.UseAuthentication();
-    // app.UseAuthorization();
+    // Enable authentication and authorization (Cookie for MVC, JWT for API)
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapStaticAssets();
 

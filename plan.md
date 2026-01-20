@@ -19,7 +19,7 @@ A unified web platform serving two distinct user groups for inventory management
 | **CSS Framework** | Tailwind CSS |
 | **Database** | Microsoft SQL Server |
 | **ORM** | EF Core + Dapper (Hybrid) |
-| **Authentication** | ASP.NET Core Identity + JWT |
+| **Authentication** | Cookie + JWT |
 | **Authorization** | Hierarchical Roles |
 | **API Style** | REST with OpenAPI/Swagger |
 | **Real-time** | SignalR (dashboard) + Webhooks (B2B) |
@@ -239,7 +239,6 @@ Stat-Stock/
 - [ ] Configure EF Core with SQL Server
 - [ ] Create database migrations
 - [ ] Seed sample data
-- [ ] Set up ASP.NET Core Identity
 
 ### Phase 2: Manager Dashboard (Day 1-2)
 - [ ] Create Manager area with layout
@@ -257,7 +256,7 @@ Stat-Stock/
 
 ### Phase 4: B2B API (Day 2-3)
 - [ ] Create API controllers
-- [ ] Configure JWT authentication
+- [ ] Configure authentication
 - [ ] Add Swagger documentation
 - [ ] Implement webhook notifications
 
