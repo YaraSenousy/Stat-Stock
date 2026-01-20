@@ -4,6 +4,7 @@ using Serilog;
 using StatStock.Infrastructure.Data;
 using StatStock.Infrastructure.Data.Seeders;
 using StatStock.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -26,21 +27,24 @@ try
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-    // Add Identity
+    // Identity temporarily disabled due to .NET 10 preview package incompatibilities
+    // The Microsoft.AspNetCore.Identity.EntityFrameworkCore package has breaking changes
+    // that cause TypeLoadException: Missing 'SetPasskeyAsync' method in UserStore
+    // TODO: Re-enable when using .NET 8/9 or when .NET 10 packages are stable
+    
+    /* 
     builder.Services.AddIdentity<ApplicationIdentityUser, IdentityRole>(options =>
     {
-        // Password settings (for development - should be stricter in production)
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
         options.Password.RequireUppercase = true;
         options.Password.RequireNonAlphanumeric = true;
         options.Password.RequiredLength = 8;
-        
-        // User settings
         options.User.RequireUniqueEmail = true;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+    */
 
     // Add Swagger
     builder.Services.AddEndpointsApiExplorer();
@@ -63,16 +67,22 @@ try
         try
         {
             var context = services.GetRequiredService<ApplicationDbContext>();
-            var userManager = services.GetRequiredService<UserManager<ApplicationIdentityUser>>();
-            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = services.GetService<UserManager<ApplicationIdentityUser>>();
+            var roleManager = services.GetService<RoleManager<IdentityRole>>();
             
             // Apply migrations
             await context.Database.MigrateAsync();
             
-            // Seed data
-            await DataSeeder.SeedAsync(context, userManager, roleManager);
-            
-            Log.Information("Database seeded successfully");
+            // Seed data only when Identity services are available (registration disabled in this run)
+            if (userManager is not null && roleManager is not null)
+            {
+                await DataSeeder.SeedAsync(context, userManager, roleManager);
+                Log.Information("Database seeded successfully");
+            }
+            else
+            {
+                Log.Warning("Identity services are not registered; skipping data seeding.");
+            }
         }
         catch (Exception ex)
         {
@@ -98,8 +108,9 @@ try
     app.UseHttpsRedirection();
     app.UseRouting();
 
-    app.UseAuthentication();
-    app.UseAuthorization();
+    // Authentication/Authorization disabled while Identity is disabled
+    // app.UseAuthentication();
+    // app.UseAuthorization();
 
     app.MapStaticAssets();
 

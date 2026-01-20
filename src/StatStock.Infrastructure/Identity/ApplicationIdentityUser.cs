@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using StatStock.Domain.Enums;
 
 namespace StatStock.Infrastructure.Identity;
