@@ -28,6 +28,9 @@ try
     // Add services to the container.
     builder.Services.AddControllersWithViews();
 
+    // Add SignalR for real-time updates
+    builder.Services.AddSignalR();
+
     // Add DbContext
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -122,6 +125,14 @@ try
     app.UseAuthorization();
 
     app.MapStaticAssets();
+
+    // Map SignalR Hub
+    app.MapHub<StatStock.Web.Hubs.DashboardHub>("/dashboardHub");
+
+    // Add area route
+    app.MapControllerRoute(
+        name: "areas",
+        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
     app.MapControllerRoute(
         name: "default",
