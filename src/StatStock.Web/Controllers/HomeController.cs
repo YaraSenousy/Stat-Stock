@@ -8,7 +8,8 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        return View();
+        // Redirect to Manager Dashboard
+        return RedirectToAction("Index", "Dashboard", new { area = "Manager" });
     }
 
     public IActionResult Privacy()
