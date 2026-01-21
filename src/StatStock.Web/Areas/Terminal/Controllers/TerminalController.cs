@@ -27,9 +27,9 @@ public class TerminalController : Controller
             SearchQuery = search
         };
 
-        if (!string.IsNullOrWhiteSpace(search))
+        try
         {
-            try
+            if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchLower = search.ToLower();
                 model.Products = await _context.Products
@@ -37,16 +37,24 @@ public class TerminalController : Controller
                                 p.Name.ToLower().Contains(searchLower) ||
                                 p.Category.ToLower().Contains(searchLower))
                     .OrderBy(p => p.Name)
-                    .Take(20) // Limit results for performance
+                    .Take(20)
                     .ToListAsync();
-                
-                model.TotalResults = model.Products.Count;
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Error searching products");
-                TempData["Error"] = "Error searching products. Please try again.";
+                // Show all products by default
+                model.Products = await _context.Products
+                    .OrderBy(p => p.Name)
+                    .Take(20)
+                    .ToListAsync();
             }
+            
+            model.TotalResults = model.Products.Count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading products");
+            TempData["Error"] = "Error loading products. Please try again.";
         }
 
         return View(model);

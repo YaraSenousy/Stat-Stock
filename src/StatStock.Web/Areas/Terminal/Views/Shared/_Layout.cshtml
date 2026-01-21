@@ -79,15 +79,15 @@
 
                 <!-- Navigation -->
                 <nav class="hidden md:flex space-x-2">
-                    <a href="/Terminal" 
+                    <a href="/Terminal/Terminal/Index" 
                        class="px-4 py-2 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-white/20 font-semibold" : "hover:bg-white/10")">
                         <span>Search</span>
                     </a>
-                    <a href="/Terminal/IncomingShipment" 
+                    <a href="/Terminal/Terminal/IncomingShipment" 
                        class="px-4 py-2 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["action"]?.ToString() == "IncomingShipment" ? "bg-white/20 font-semibold" : "hover:bg-white/10")">
                         <span>Incoming</span>
                     </a>
-                    <a href="/Terminal/OutgoingShipment" 
+                    <a href="/Terminal/Terminal/OutgoingShipment" 
                        class="px-4 py-2 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["action"]?.ToString() == "OutgoingShipment" ? "bg-white/20 font-semibold" : "hover:bg-white/10")">
                         <span>Outgoing</span>
                     </a>
@@ -112,15 +112,15 @@
     <!-- Mobile Navigation -->
     <div class="md:hidden bg-white border-b border-slate-200">
         <div class="flex">
-            <a href="/Terminal" 
+            <a href="/Terminal/Terminal/Index" 
                class="flex-1 text-center py-3 @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-primary-50 text-primary-700 border-b-2 border-primary-600 font-semibold" : "text-slate-600 hover:bg-slate-50")">
                 Search
             </a>
-            <a href="/Terminal/IncomingShipment" 
+            <a href="/Terminal/Terminal/IncomingShipment" 
                class="flex-1 text-center py-3 @(ViewContext.RouteData.Values["action"]?.ToString() == "IncomingShipment" ? "bg-primary-50 text-primary-700 border-b-2 border-primary-600 font-semibold" : "text-slate-600 hover:bg-slate-50")">
                 Incoming
             </a>
-            <a href="/Terminal/OutgoingShipment" 
+            <a href="/Terminal/Terminal/OutgoingShipment" 
                class="flex-1 text-center py-3 @(ViewContext.RouteData.Values["action"]?.ToString() == "OutgoingShipment" ? "bg-primary-50 text-primary-700 border-b-2 border-primary-600 font-semibold" : "text-slate-600 hover:bg-slate-50")">
                 Outgoing
             </a>
@@ -160,17 +160,17 @@
             // Alt+S - Go to Search
             if (e.altKey && e.key === 's') {
                 e.preventDefault();
-                window.location.href = '/Terminal';
+                window.location.href = '/Terminal/Terminal/Index';
             }
             // Alt+I - Go to Incoming Shipment
             else if (e.altKey && e.key === 'i') {
                 e.preventDefault();
-                window.location.href = '/Terminal/IncomingShipment';
+                window.location.href = '/Terminal/Terminal/IncomingShipment';
             }
             // Alt+O - Go to Outgoing Shipment
             else if (e.altKey && e.key === 'o') {
                 e.preventDefault();
-                window.location.href = '/Terminal/OutgoingShipment';
+                window.location.href = '/Terminal/Terminal/OutgoingShipment';
             }
             // Alt+Enter - Submit form
             else if (e.altKey && e.key === 'Enter') {
