@@ -52,3 +52,10 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Tailwind CSS output
+wwwroot/css/output.css

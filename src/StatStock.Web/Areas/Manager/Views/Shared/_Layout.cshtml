@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - StatStock Manager</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- SignalR -->
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-primary-800 to-primary-900 text-white fixed h-full shadow-xl">
+            <!-- Logo -->
+            <div class="p-6 border-b border-primary-700/50">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight">StatStock</h1>
+                        <p class="text-primary-300 text-xs">Inventory Management</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="mt-6 px-3">
+                <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-3 mb-3">Main Menu</p>
+                
+                <a href="/Manager/Dashboard" 
+                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+
+                <a href="/Manager/Products" 
+                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    <span class="font-medium">Products</span>
+                </a>
+
+                <a href="/Manager/Orders" 
+                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <span class="font-medium">Orders</span>
+                </a>
+
+                <div class="mt-8">
+                    <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-3 mb-3">Quick Actions</p>
+                    <a href="/Manager/Orders?status=Pending" 
+                       class="flex items-center px-4 py-3 mb-1 rounded-lg text-primary-200 hover:bg-white/5 hover:text-white transition-all duration-200">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium">Pending Orders</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User section at bottom -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-primary-700/50">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
+                        <span class="text-sm font-semibold">M</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">Manager</p>
+                        <p class="text-xs text-primary-300">manager@statstock.com</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 ml-64">
+            <!-- Top Bar -->
+            <header class="bg-white shadow-sm sticky top-0 z-10">
+                <div class="px-8 py-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">@ViewData["Title"]</h2>
+                        <p class="text-sm text-slate-500">Welcome back! Here's what's happening today.</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <!-- Date -->
+                        <span class="text-sm text-slate-500">@DateTime.Now.ToString("dddd, MMMM dd")</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="p-8">
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="px-8 py-4 text-center text-sm text-slate-400 border-t bg-white">
+                &copy; 2026 StatStock - Inventory Management Platform
+            </footer>
+        </div>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

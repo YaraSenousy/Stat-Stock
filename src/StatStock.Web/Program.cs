@@ -28,9 +28,35 @@ try
     // Add services to the container.
     builder.Services.AddControllersWithViews();
 
-    // Add DbContext
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    // Add SignalR for real-time updates
+    builder.Services.AddSignalR();
+
+    // Add DbContext - Use SQLite for Linux/testing, SQL Server for Windows/production
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (OperatingSystem.IsWindows())
+    {
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(connectionString));
+    }
+    else
+    {
+        // Use SQLite for non-Windows environments (Linux/Mac)
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlite("Data Source=StatStock.db"));
+        Log.Information("Using SQLite database for non-Windows environment");
+    }
+
+    // Add Identity
+    builder.Services.AddIdentity<ApplicationIdentityUser, IdentityRole>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequiredLength = 6;
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
     // Add Authentication: Cookie for MVC + JWT for API
     var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";
@@ -122,6 +148,14 @@ try
     app.UseAuthorization();
 
     app.MapStaticAssets();
+
+    // Map SignalR Hub
+    app.MapHub<StatStock.Web.Hubs.DashboardHub>("/dashboardHub");
+
+    // Add area route
+    app.MapControllerRoute(
+        name: "areas",
+        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
     app.MapControllerRoute(
         name: "default",

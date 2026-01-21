@@ -1,0 +1,15 @@
+{
+  "name": "statstock-web",
+  "version": "1.0.0",
+  "description": "StatStock Web Application",
+  "scripts": {
+    "build:css": "tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.1"
+  }
+}
