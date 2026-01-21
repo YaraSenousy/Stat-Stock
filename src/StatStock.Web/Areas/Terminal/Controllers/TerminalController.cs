@@ -107,13 +107,13 @@ public class TerminalController : Controller
             // Create an order record for tracking
             var order = new Order
             {
-                OrderNumber = $"IN-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                OrderNumber = $"IN-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}",
                 Type = OrderType.Incoming,
                 Status = OrderStatus.Delivered, // Auto-approve incoming shipments
                 CreatedAt = DateTime.UtcNow,
                 ApprovedAt = DateTime.UtcNow,
                 Notes = notes ?? $"Terminal incoming shipment: {quantity} units",
-                UserId = "terminal-user" // In production, use actual user ID
+                UserId = "terminal-user" // TODO: In production, use actual authenticated user ID
             };
 
             _context.Orders.Add(order);
@@ -209,13 +209,13 @@ public class TerminalController : Controller
             // Create an order record for tracking
             var order = new Order
             {
-                OrderNumber = $"OUT-{DateTime.UtcNow:yyyyMMddHHmmss}",
+                OrderNumber = $"OUT-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}",
                 Type = OrderType.Outgoing,
                 Status = OrderStatus.Delivered, // Auto-approve outgoing shipments
                 CreatedAt = DateTime.UtcNow,
                 ApprovedAt = DateTime.UtcNow,
                 Notes = notes ?? $"Terminal outgoing shipment: {quantity} units",
-                UserId = "terminal-user" // In production, use actual user ID
+                UserId = "terminal-user" // TODO: In production, use actual authenticated user ID
             };
 
             _context.Orders.Add(order);
