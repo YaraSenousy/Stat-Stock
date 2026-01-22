@@ -254,13 +254,13 @@ Stat-Stock/
 - [x] Keyboard shortcuts integration
 
 ### Phase 4: Order Management & Approvals (Manager)
-- [ ] Bulk approve/reject orders (select multiple orders)
-- [ ] Single order approve/reject buttons (currently only UpdateStatus exists)
-- [ ] Order details page actions (Approve, Reject, Cancel buttons)
-- [ ] Automated approval rules (auto-approve based on criteria)
-- [ ] Order status change notifications
-- [ ] Order filters by date range
-- [ ] Order search by order number
+- [x] Bulk approve/reject orders (select multiple orders)
+- [x] Single order approve/reject buttons (currently only UpdateStatus exists)
+- [x] Order details page actions (Approve, Reject, Cancel buttons)
+- [x] Automated approval rules (auto-approve based on criteria)
+- [x] Order status change notifications
+- [x] Order filters by date range
+- [x] Order search by order number
 
 ### Phase 5: Product Management (Manager CRUD)
 - [ ] Create Product form (Manager area)
