@@ -114,7 +114,6 @@ Stat-Stock/
 |   |   |-- Data/
 |   |   |   |-- EfCore/
 |   |   |   +-- Dapper/
-|   |   |-- Identity/
 |   |   |-- Services/
 |   |   +-- Persistence/
 |   |
@@ -158,7 +157,7 @@ Stat-Stock/
 1. Create solution structure with all projects
 2. Set up Domain entities
 3. Configure EF Core + database
-4. Implement basic Identity
+4. Implement basic authentication
 5. Create Manager Dashboard (data display)
 6. Add statistics/charts
 7. Implement Ordering Terminal
@@ -316,7 +315,6 @@ dotnet add src/StatStock.Web reference src/StatStock.Infrastructure
 
 # Essential packages (Web project)
 dotnet add src/StatStock.Web package Microsoft.EntityFrameworkCore.SqlServer
-dotnet add src/StatStock.Web package Microsoft.AspNetCore.Identity.EntityFrameworkCore
 dotnet add src/StatStock.Web package Dapper
 dotnet add src/StatStock.Web package Serilog.AspNetCore
 dotnet add src/StatStock.Web package Swashbuckle.AspNetCore

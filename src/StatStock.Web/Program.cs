@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using StatStock.Infrastructure.Data;
@@ -45,18 +44,6 @@ try
             options.UseSqlite("Data Source=StatStock.db"));
         Log.Information("Using SQLite database for non-Windows environment");
     }
-
-    // Add Identity
-    builder.Services.AddIdentity<ApplicationIdentityUser, IdentityRole>(options =>
-    {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 6;
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
 
     // Add Authentication: Cookie for MVC + JWT for API
     var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";
