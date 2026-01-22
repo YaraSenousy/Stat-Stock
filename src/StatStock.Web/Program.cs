@@ -41,7 +41,12 @@ try
     {
         // Use SQLite for non-Windows environments (Linux/Mac)
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlite("Data Source=StatStock.db"));
+        {
+            options.UseSqlite("Data Source=StatStock.db");
+            // Suppress pending model changes warning
+            options.ConfigureWarnings(warnings => 
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
         Log.Information("Using SQLite database for non-Windows environment");
     }
 

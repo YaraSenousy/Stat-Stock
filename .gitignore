@@ -59,3 +59,8 @@ package-lock.json
 
 # Tailwind CSS output
 wwwroot/css/output.css
+
+# SQLite Database files
+*.db
+*.db-shm
+*.db-wal
