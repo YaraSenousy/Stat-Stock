@@ -240,10 +240,10 @@ Stat-Stock/
 - [ ] Seed sample data
 
 ### Phase 2: Manager Dashboard (Day 1-2)
-- [ ] Create Manager area with layout
-- [ ] Implement Product listing page
-- [ ] Add Order listing with status filters
-- [ ] Create Dashboard with Chart.js statistics
+- [x] Create Manager area with layout
+- [x] Implement Product listing page
+- [x] Add Order listing with status filters
+- [x] Create Dashboard with Chart.js statistics
 - [ ] Implement real-time updates with SignalR
 
 ### Phase 3: Ordering Terminal (Day 2)
@@ -253,7 +253,16 @@ Stat-Stock/
 - [x] Add outgoing shipment form
 - [x] Keyboard shortcuts integration
 
-### Phase 4: Product Management (Manager CRUD)
+### Phase 4: Order Management & Approvals (Manager)
+- [ ] Bulk approve/reject orders (select multiple orders)
+- [ ] Single order approve/reject buttons (currently only UpdateStatus exists)
+- [ ] Order details page actions (Approve, Reject, Cancel buttons)
+- [ ] Automated approval rules (auto-approve based on criteria)
+- [ ] Order status change notifications
+- [ ] Order filters by date range
+- [ ] Order search by order number
+
+### Phase 5: Product Management (Manager CRUD)
 - [ ] Create Product form (Manager area)
 - [ ] Edit Product form with validation
 - [ ] Delete Product with confirmation
@@ -261,19 +270,42 @@ Stat-Stock/
 - [ ] Category management
 - [ ] Bulk import/export products (CSV/Excel)
 
-### Phase 5: B2B API (Day 2-3)
-- [ ] Create API controllers
-- [ ] Configure authentication
+### Phase 6: B2B API
+- [ ] Create API controllers for orders
+- [ ] Create API controllers for products
+- [ ] Configure JWT authentication
 - [ ] Add Swagger documentation
 - [ ] Implement webhook notifications
+- [ ] API rate limiting
+- [ ] API key management
 
-### Phase 6: Polish & Enhancements (Day 3)
-- [ ] Add email notifications
-- [ ] Implement in-app notifications
-- [ ] Add export functionality (PDF/Excel)
-- [ ] Write unit tests for core features
+### Phase 7: Reports & Analytics (Manager)
+- [ ] Reports & exports (PDF/Excel)
+- [ ] Predictive analytics (demand forecasting)
+- [ ] Automatic reorder suggestions
+- [ ] Low stock alerts configuration
+- [ ] Stock movement history report
+- [ ] Inventory valuation report
+- [ ] Sales trends report
+
+### Phase 8: Advanced Features
+- [ ] User authentication system (without Identity)
+- [ ] User management (Create, Edit, Delete users)
+- [ ] Role-based access control
+- [ ] Audit trail with user tracking
+- [ ] Email notifications for approvals
+- [ ] In-app notification system
 - [ ] Barcode/QR code scanning for Terminal
-- [ ] Stock movement history and audit trail
+- [ ] Batch entry (multiple products in one shipment)
+- [ ] Expiration/shelf-life tracking
+
+### Phase 9: Polish & Testing (Day 3)
+- [ ] Write unit tests for core features
+- [ ] Integration tests for API
+- [ ] UI/UX improvements
+- [ ] Performance optimization
+- [ ] Error handling improvements
+- [ ] Logging enhancements
 
 ---
 
