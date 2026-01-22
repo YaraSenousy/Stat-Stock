@@ -1,116 +1,26 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Domain.Entities;
 using StatStock.Domain.Enums;
-using StatStock.Infrastructure.Identity;
 
 namespace StatStock.Infrastructure.Data.Seeders;
 
 public static class DataSeeder
 {
-    public static async Task SeedAsync(ApplicationDbContext context, UserManager<ApplicationIdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+    public static async Task SeedAsync(ApplicationDbContext context)
     {
-        // Seed Roles
-        await SeedRolesAsync(roleManager);
-        
-        // Seed Users
-        await SeedUsersAsync(userManager);
-        
         // Seed Products
         await SeedProductsAsync(context);
         
         // Seed Suppliers
         await SeedSuppliersAsync(context);
         
-        // Seed Orders
-        await SeedOrdersAsync(context);
+        // Note: Orders seeding disabled because it requires users
+        // Uncomment when user management is implemented
+        // await SeedOrdersAsync(context);
         
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
-    {
-        string[] roles = { "Admin", "Manager", "FloorStaff", "B2BClient" };
-        
-        foreach (var role in roles)
-        {
-            if (!await roleManager.RoleExistsAsync(role))
-            {
-                await roleManager.CreateAsync(new IdentityRole(role));
-            }
-        }
-    }
-
-    private static async Task SeedUsersAsync(UserManager<ApplicationIdentityUser> userManager)
-    {
-        // Admin User
-        if (await userManager.FindByEmailAsync("admin@statstock.com") == null)
-        {
-            var admin = new ApplicationIdentityUser
-            {
-                UserName = "admin@statstock.com",
-                Email = "admin@statstock.com",
-                FirstName = "Admin",
-                LastName = "User",
-                Role = UserRole.Admin,
-                Area = "All",
-                EmailConfirmed = true
-            };
-            await userManager.CreateAsync(admin, "Admin@123");
-            await userManager.AddToRoleAsync(admin, "Admin");
-        }
-
-        // Manager User
-        if (await userManager.FindByEmailAsync("manager@statstock.com") == null)
-        {
-            var manager = new ApplicationIdentityUser
-            {
-                UserName = "manager@statstock.com",
-                Email = "manager@statstock.com",
-                FirstName = "Manager",
-                LastName = "User",
-                Role = UserRole.Manager,
-                Area = "Warehouse A",
-                EmailConfirmed = true
-            };
-            await userManager.CreateAsync(manager, "Manager@123");
-            await userManager.AddToRoleAsync(manager, "Manager");
-        }
-
-        // Floor Staff User
-        if (await userManager.FindByEmailAsync("staff@statstock.com") == null)
-        {
-            var staff = new ApplicationIdentityUser
-            {
-                UserName = "staff@statstock.com",
-                Email = "staff@statstock.com",
-                FirstName = "Floor",
-                LastName = "Staff",
-                Role = UserRole.FloorStaff,
-                Area = "Warehouse A",
-                EmailConfirmed = true
-            };
-            await userManager.CreateAsync(staff, "Staff@123");
-            await userManager.AddToRoleAsync(staff, "FloorStaff");
-        }
-
-        // B2B Client User
-        if (await userManager.FindByEmailAsync("client@statstock.com") == null)
-        {
-            var client = new ApplicationIdentityUser
-            {
-                UserName = "client@statstock.com",
-                Email = "client@statstock.com",
-                FirstName = "B2B",
-                LastName = "Client",
-                Role = UserRole.B2BClient,
-                Area = "External",
-                EmailConfirmed = true
-            };
-            await userManager.CreateAsync(client, "Client@123");
-            await userManager.AddToRoleAsync(client, "B2BClient");
-        }
-    }
 
     private static async Task SeedProductsAsync(ApplicationDbContext context)
     {
@@ -185,60 +95,6 @@ public static class DataSeeder
         await context.Suppliers.AddRangeAsync(suppliers);
     }
 
-    private static async Task SeedOrdersAsync(ApplicationDbContext context)
-    {
-        if (await context.Orders.AnyAsync())
-            return;
-
-        var products = await context.Products.ToListAsync();
-        var suppliers = await context.Suppliers.ToListAsync();
-        var users = await context.Users.ToListAsync();
-
-        if (!products.Any() || !suppliers.Any() || !users.Any())
-            return;
-
-        var random = new Random(42); // Fixed seed for consistency
-        var orders = new List<Order>();
-
-        // Create 25 sample orders with various statuses
-        var statuses = new[] { OrderStatus.Pending, OrderStatus.Approved, OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Cancelled };
-        var types = new[] { OrderType.Incoming, OrderType.Outgoing };
-
-        for (int i = 1; i <= 25; i++)
-        {
-            var status = statuses[random.Next(statuses.Length)];
-            var type = types[random.Next(types.Length)];
-            var createdDate = DateTime.UtcNow.AddDays(-random.Next(1, 60));
-            
-            var order = new Order
-            {
-                OrderNumber = $"ORD-{DateTime.UtcNow.Year}-{i:D4}",
-                Type = type,
-                Status = status,
-                CreatedAt = createdDate,
-                ApprovedAt = status != OrderStatus.Pending ? createdDate.AddHours(random.Next(1, 48)) : null,
-                Notes = $"Sample order {i}",
-                SupplierId = type == OrderType.Incoming ? suppliers[random.Next(suppliers.Count)].Id : null,
-                UserId = users[random.Next(users.Count)].Id,
-                Items = new List<OrderItem>()
-            };
-
-            // Add 1-5 items to each order
-            int itemCount = random.Next(1, 6);
-            for (int j = 0; j < itemCount; j++)
-            {
-                var product = products[random.Next(products.Count)];
-                order.Items.Add(new OrderItem
-                {
-                    ProductId = product.Id,
-                    Quantity = random.Next(1, 20),
-                    UnitPrice = product.Price
-                });
-            }
-
-            orders.Add(order);
-        }
-
-        await context.Orders.AddRangeAsync(orders);
-    }
+    // Note: Order seeding removed - requires user management
 }
+

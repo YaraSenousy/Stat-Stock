@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using StatStock.Infrastructure.Data;
@@ -46,18 +45,6 @@ try
         Log.Information("Using SQLite database for non-Windows environment");
     }
 
-    // Add Identity
-    builder.Services.AddIdentity<ApplicationIdentityUser, IdentityRole>(options =>
-    {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 6;
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
     // Add Authentication: Cookie for MVC + JWT for API
     var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";
     builder.Services.AddAuthentication(options =>
@@ -102,22 +89,13 @@ try
         try
         {
             var context = services.GetRequiredService<ApplicationDbContext>();
-            var userManager = services.GetService<UserManager<ApplicationIdentityUser>>();
-            var roleManager = services.GetService<RoleManager<IdentityRole>>();
             
             // Apply migrations
             await context.Database.MigrateAsync();
             
-            // Seed data only when Identity services are available (registration disabled in this run)
-            if (userManager is not null && roleManager is not null)
-            {
-                await DataSeeder.SeedAsync(context, userManager, roleManager);
-                Log.Information("Database seeded successfully");
-            }
-            else
-            {
-                Log.Warning("Identity services are not registered; skipping data seeding.");
-            }
+            // Seed data (without Identity - not supported in .NET 10)
+            await DataSeeder.SeedAsync(context);
+            Log.Information("Database seeded successfully");
         }
         catch (Exception ex)
         {

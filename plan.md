@@ -114,7 +114,6 @@ Stat-Stock/
 |   |   |-- Data/
 |   |   |   |-- EfCore/
 |   |   |   +-- Dapper/
-|   |   |-- Identity/
 |   |   |-- Services/
 |   |   +-- Persistence/
 |   |
@@ -158,7 +157,7 @@ Stat-Stock/
 1. Create solution structure with all projects
 2. Set up Domain entities
 3. Configure EF Core + database
-4. Implement basic Identity
+4. Implement basic authentication
 5. Create Manager Dashboard (data display)
 6. Add statistics/charts
 7. Implement Ordering Terminal
@@ -241,30 +240,72 @@ Stat-Stock/
 - [ ] Seed sample data
 
 ### Phase 2: Manager Dashboard (Day 1-2)
-- [ ] Create Manager area with layout
-- [ ] Implement Product listing page
-- [ ] Add Order listing with status filters
-- [ ] Create Dashboard with Chart.js statistics
+- [x] Create Manager area with layout
+- [x] Implement Product listing page
+- [x] Add Order listing with status filters
+- [x] Create Dashboard with Chart.js statistics
 - [ ] Implement real-time updates with SignalR
 
 ### Phase 3: Ordering Terminal (Day 2)
-- [ ] Create Terminal area with simplified UI
-- [ ] Implement quick product search
-- [ ] Add incoming shipment form
-- [ ] Add outgoing shipment form
-- [ ] Keyboard shortcuts integration
+- [x] Create Terminal area with simplified UI
+- [x] Implement quick product search
+- [x] Add incoming shipment form
+- [x] Add outgoing shipment form
+- [x] Keyboard shortcuts integration
 
-### Phase 4: B2B API (Day 2-3)
-- [ ] Create API controllers
-- [ ] Configure authentication
+### Phase 4: Order Management & Approvals (Manager)
+- [ ] Bulk approve/reject orders (select multiple orders)
+- [ ] Single order approve/reject buttons (currently only UpdateStatus exists)
+- [ ] Order details page actions (Approve, Reject, Cancel buttons)
+- [ ] Automated approval rules (auto-approve based on criteria)
+- [ ] Order status change notifications
+- [ ] Order filters by date range
+- [ ] Order search by order number
+
+### Phase 5: Product Management (Manager CRUD)
+- [ ] Create Product form (Manager area)
+- [ ] Edit Product form with validation
+- [ ] Delete Product with confirmation
+- [ ] Supplier CRUD (Create, Edit, Delete)
+- [ ] Category management
+- [ ] Bulk import/export products (CSV/Excel)
+
+### Phase 6: B2B API
+- [ ] Create API controllers for orders
+- [ ] Create API controllers for products
+- [ ] Configure JWT authentication
 - [ ] Add Swagger documentation
 - [ ] Implement webhook notifications
+- [ ] API rate limiting
+- [ ] API key management
 
-### Phase 5: Polish (Day 3)
-- [ ] Add email notifications
-- [ ] Implement in-app notifications
-- [ ] Add export functionality (PDF/Excel)
+### Phase 7: Reports & Analytics (Manager)
+- [ ] Reports & exports (PDF/Excel)
+- [ ] Predictive analytics (demand forecasting)
+- [ ] Automatic reorder suggestions
+- [ ] Low stock alerts configuration
+- [ ] Stock movement history report
+- [ ] Inventory valuation report
+- [ ] Sales trends report
+
+### Phase 8: Advanced Features
+- [ ] User authentication system (without Identity)
+- [ ] User management (Create, Edit, Delete users)
+- [ ] Role-based access control
+- [ ] Audit trail with user tracking
+- [ ] Email notifications for approvals
+- [ ] In-app notification system
+- [ ] Barcode/QR code scanning for Terminal
+- [ ] Batch entry (multiple products in one shipment)
+- [ ] Expiration/shelf-life tracking
+
+### Phase 9: Polish & Testing (Day 3)
 - [ ] Write unit tests for core features
+- [ ] Integration tests for API
+- [ ] UI/UX improvements
+- [ ] Performance optimization
+- [ ] Error handling improvements
+- [ ] Logging enhancements
 
 ---
 
@@ -316,7 +357,6 @@ dotnet add src/StatStock.Web reference src/StatStock.Infrastructure
 
 # Essential packages (Web project)
 dotnet add src/StatStock.Web package Microsoft.EntityFrameworkCore.SqlServer
-dotnet add src/StatStock.Web package Microsoft.AspNetCore.Identity.EntityFrameworkCore
 dotnet add src/StatStock.Web package Dapper
 dotnet add src/StatStock.Web package Serilog.AspNetCore
 dotnet add src/StatStock.Web package Swashbuckle.AspNetCore

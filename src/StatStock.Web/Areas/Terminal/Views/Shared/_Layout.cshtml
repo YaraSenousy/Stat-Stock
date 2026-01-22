@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - StatStock Terminal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Large touch-friendly UI elements */
+        .btn-terminal {
+            min-height: 3.5rem;
+            font-size: 1.125rem;
+        }
+        
+        .input-terminal {
+            min-height: 3.5rem;
+            font-size: 1.25rem;
+        }
+        
+        /* Keyboard shortcut hints */
+        .kbd-hint {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <!-- Top Bar -->
+    <div class="bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo and Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Ordering Terminal</h1>
+                        <p class="text-primary-100 text-xs">Quick Shipment Entry</p>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex space-x-2">
+                    <a href="/Terminal/Terminal/Index" 
+                       class="px-4 py-2 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-white/20 font-semibold" : "hover:bg-white/10")">
+                        <span>Search</span>
+                    </a>
+                    <a href="/Terminal/Terminal/IncomingShipment" 
+                       class="px-4 py-2 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["action"]?.ToString() == "IncomingShipment" ? "bg-white/20 font-semibold" : "hover:bg-white/10")">
+                        <span>Incoming</span>
+                    </a>
+                    <a href="/Terminal/Terminal/OutgoingShipment" 
+                       class="px-4 py-2 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["action"]?.ToString() == "OutgoingShipment" ? "bg-white/20 font-semibold" : "hover:bg-white/10")">
+                        <span>Outgoing</span>
+                    </a>
+                </nav>
+
+                <!-- User Info -->
+                <div class="flex items-center space-x-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-medium">Floor Staff</p>
+                        <p class="text-xs text-primary-200">@DateTime.Now.ToString("MMM dd, yyyy")</p>
+                    </div>
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="md:hidden bg-white border-b border-slate-200">
+        <div class="flex">
+            <a href="/Terminal/Terminal/Index" 
+               class="flex-1 text-center py-3 @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-primary-50 text-primary-700 border-b-2 border-primary-600 font-semibold" : "text-slate-600 hover:bg-slate-50")">
+                Search
+            </a>
+            <a href="/Terminal/Terminal/IncomingShipment" 
+               class="flex-1 text-center py-3 @(ViewContext.RouteData.Values["action"]?.ToString() == "IncomingShipment" ? "bg-primary-50 text-primary-700 border-b-2 border-primary-600 font-semibold" : "text-slate-600 hover:bg-slate-50")">
+                Incoming
+            </a>
+            <a href="/Terminal/Terminal/OutgoingShipment" 
+               class="flex-1 text-center py-3 @(ViewContext.RouteData.Values["action"]?.ToString() == "OutgoingShipment" ? "bg-primary-50 text-primary-700 border-b-2 border-primary-600 font-semibold" : "text-slate-600 hover:bg-slate-50")">
+                Outgoing
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @RenderBody()
+    </main>
+
+    <!-- Footer with keyboard shortcuts -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between text-sm text-slate-600">
+                <div class="mb-3 sm:mb-0">
+                    <p>&copy; @DateTime.Now.Year StatStock. All rights reserved.</p>
+                </div>
+                <div class="flex flex-wrap gap-4 items-center justify-center">
+                    <span class="text-slate-500">Keyboard Shortcuts:</span>
+                    <div class="flex gap-2 flex-wrap justify-center">
+                        <span><kbd class="kbd-hint">Alt+S</kbd> Search</span>
+                        <span><kbd class="kbd-hint">Alt+I</kbd> Incoming</span>
+                        <span><kbd class="kbd-hint">Alt+O</kbd> Outgoing</span>
+                        <span><kbd class="kbd-hint">Alt+Enter</kbd> Submit</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+    
+    <!-- Global keyboard shortcuts -->
+    <script>
+        document.addEventListener('keydown', function(e) {
+            // Alt+S - Go to Search
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                window.location.href = '/Terminal/Terminal/Index';
+            }
+            // Alt+I - Go to Incoming Shipment
+            else if (e.altKey && e.key === 'i') {
+                e.preventDefault();
+                window.location.href = '/Terminal/Terminal/IncomingShipment';
+            }
+            // Alt+O - Go to Outgoing Shipment
+            else if (e.altKey && e.key === 'o') {
+                e.preventDefault();
+                window.location.href = '/Terminal/Terminal/OutgoingShipment';
+            }
+            // Alt+Enter - Submit form
+            else if (e.altKey && e.key === 'Enter') {
+                e.preventDefault();
+                const form = document.querySelector('form');
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
