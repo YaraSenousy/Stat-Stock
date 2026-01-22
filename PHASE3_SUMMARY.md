@@ -258,7 +258,14 @@ The Terminal interface follows these principles:
 ---
 
 **Status**: Phase 3 Complete ✅  
-**Date**: January 21, 2026  
+**Date**: January 22, 2026  
 **Build Status**: ✅ Compiles successfully  
 **Test Status**: ✅ All automated tests passed  
 **UI Status**: ✅ Responsive and functional
+
+## Bug Fixes Applied (Jan 22, 2026)
+- Fixed HTTP 405 errors on form submissions (corrected POST action URLs)
+- Fixed product selection links in search results (area routing)
+- Fixed navbar and mobile navigation URLs
+- Fixed keyboard shortcut navigation URLs
+- Updated controller to show all products by default on Index page
