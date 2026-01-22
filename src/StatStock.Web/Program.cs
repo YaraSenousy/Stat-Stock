@@ -89,22 +89,13 @@ try
         try
         {
             var context = services.GetRequiredService<ApplicationDbContext>();
-            var userManager = services.GetService<UserManager<ApplicationIdentityUser>>();
-            var roleManager = services.GetService<RoleManager<IdentityRole>>();
             
             // Apply migrations
             await context.Database.MigrateAsync();
             
-            // Seed data only when Identity services are available (registration disabled in this run)
-            if (userManager is not null && roleManager is not null)
-            {
-                await DataSeeder.SeedAsync(context, userManager, roleManager);
-                Log.Information("Database seeded successfully");
-            }
-            else
-            {
-                Log.Warning("Identity services are not registered; skipping data seeding.");
-            }
+            // Seed data (without Identity - not supported in .NET 10)
+            await DataSeeder.SeedAsync(context);
+            Log.Information("Database seeded successfully");
         }
         catch (Exception ex)
         {

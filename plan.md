@@ -253,17 +253,27 @@ Stat-Stock/
 - [x] Add outgoing shipment form
 - [x] Keyboard shortcuts integration
 
-### Phase 4: B2B API (Day 2-3)
+### Phase 4: Product Management (Manager CRUD)
+- [ ] Create Product form (Manager area)
+- [ ] Edit Product form with validation
+- [ ] Delete Product with confirmation
+- [ ] Supplier CRUD (Create, Edit, Delete)
+- [ ] Category management
+- [ ] Bulk import/export products (CSV/Excel)
+
+### Phase 5: B2B API (Day 2-3)
 - [ ] Create API controllers
 - [ ] Configure authentication
 - [ ] Add Swagger documentation
 - [ ] Implement webhook notifications
 
-### Phase 5: Polish (Day 3)
+### Phase 6: Polish & Enhancements (Day 3)
 - [ ] Add email notifications
 - [ ] Implement in-app notifications
 - [ ] Add export functionality (PDF/Excel)
 - [ ] Write unit tests for core features
+- [ ] Barcode/QR code scanning for Terminal
+- [ ] Stock movement history and audit trail
 
 ---
 
