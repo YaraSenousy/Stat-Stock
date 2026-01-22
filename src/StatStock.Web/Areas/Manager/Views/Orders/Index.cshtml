@@ -6,38 +6,116 @@
 <!-- Filter Section -->
 <div class="mb-6">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Status</label>
-                <select name="status" 
-                        class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
-                    <option value="">All Statuses</option>
-                    @foreach (var status in ViewBag.OrderStatuses)
-                    {
-                        <option value="@status" selected="@(status == ViewBag.CurrentStatus)">@status</option>
-                    }
-                </select>
+        <form method="get" class="space-y-4">
+            <!-- First Row: Search and Date Range -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Search by Order Number</label>
+                    <input type="text" 
+                           name="search" 
+                           value="@ViewBag.CurrentSearch"
+                           placeholder="Enter order number..."
+                           class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">From Date</label>
+                    <input type="date" 
+                           name="fromDate" 
+                           value="@ViewBag.FromDate"
+                           class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">To Date</label>
+                    <input type="date" 
+                           name="toDate" 
+                           value="@ViewBag.ToDate"
+                           class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                </div>
             </div>
             
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Type</label>
-                <select name="type" 
-                        class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
-                    <option value="">All Types</option>
-                    @foreach (var type in ViewBag.OrderTypes)
-                    {
-                        <option value="@type" selected="@(type == ViewBag.CurrentType)">@type</option>
-                    }
-                </select>
-            </div>
-            
-            <div>
-                <button type="submit" 
-                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 font-semibold">
-                    Apply Filters
-                </button>
+            <!-- Second Row: Status, Type, and Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Status</label>
+                    <select name="status" 
+                            class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
+                        <option value="">All Statuses</option>
+                        @foreach (var status in ViewBag.OrderStatuses)
+                        {
+                            <option value="@status" selected="@(status == ViewBag.CurrentStatus)">@status</option>
+                        }
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Type</label>
+                    <select name="type" 
+                            class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
+                        <option value="">All Types</option>
+                        @foreach (var type in ViewBag.OrderTypes)
+                        {
+                            <option value="@type" selected="@(type == ViewBag.CurrentType)">@type</option>
+                        }
+                    </select>
+                </div>
+                
+                <div>
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 font-semibold">
+                        Apply Filters
+                    </button>
+                </div>
+                
+                <div>
+                    <a href="/Manager/Orders" 
+                       class="block w-full text-center px-6 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-all">
+                        Clear Filters
+                    </a>
+                </div>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Bulk Actions Bar (hidden by default, shown when orders are selected) -->
+<div id="bulkActionsBar" class="mb-6 hidden">
+    <div class="bg-primary-50 border-2 border-primary-200 rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+                <span id="selectedCount" class="font-semibold text-slate-800">0 orders selected</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <form method="post" action="/Manager/Orders/BulkUpdateStatus" id="bulkApproveForm" class="inline">
+                    <input type="hidden" name="status" value="Approved">
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/30 hover:from-emerald-600 hover:to-emerald-700 transition-all">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Approve Selected
+                    </button>
+                </form>
+                <form method="post" action="/Manager/Orders/BulkUpdateStatus" id="bulkRejectForm" class="inline">
+                    <input type="hidden" name="status" value="Cancelled">
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 bg-white text-red-600 font-semibold rounded-xl border-2 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Reject Selected
+                    </button>
+                </form>
+                <button onclick="clearSelection()" 
+                        class="inline-flex items-center px-4 py-2 text-slate-600 hover:text-slate-800 transition">
+                    Clear
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -47,6 +125,12 @@
         <table class="w-full">
             <thead class="bg-slate-50 border-b border-slate-200">
                 <tr>
+                    <th class="px-6 py-4 text-left">
+                        <input type="checkbox" 
+                               id="selectAll" 
+                               onchange="toggleSelectAll(this)"
+                               class="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500">
+                    </th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Order #</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Type</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
@@ -60,6 +144,12 @@
                 @foreach (var order in Model)
                 {
                     <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <input type="checkbox" 
+                                   class="order-checkbox w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
+                                   data-order-id="@order.Id"
+                                   onchange="updateBulkActions()">
+                        </td>
                         <td class="px-6 py-4">
                             <span class="font-mono text-sm font-semibold text-slate-900">@order.OrderNumber</span>
                         </td>
@@ -138,4 +228,89 @@
             _ => "bg-slate-100 text-slate-800"
         };
     }
+}
+
+@section Scripts {
+<script>
+    // Toggle select all checkboxes
+    function toggleSelectAll(selectAllCheckbox) {
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+        updateBulkActions();
+    }
+
+    // Update bulk actions bar visibility and selected count
+    function updateBulkActions() {
+        const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+        const count = checkboxes.length;
+        const bulkActionsBar = document.getElementById('bulkActionsBar');
+        const selectedCount = document.getElementById('selectedCount');
+        const selectAllCheckbox = document.getElementById('selectAll');
+
+        if (count > 0) {
+            bulkActionsBar.classList.remove('hidden');
+            selectedCount.textContent = count + ' order' + (count > 1 ? 's' : '') + ' selected';
+
+            // Update forms with selected order IDs
+            const orderIds = Array.from(checkboxes).map(cb => cb.getAttribute('data-order-id'));
+            
+            // Clear existing hidden inputs
+            document.querySelectorAll('.order-id-input').forEach(el => el.remove());
+            
+            // Add hidden input for each order ID to both forms
+            orderIds.forEach(id => {
+                // For approve form
+                const approveInput = document.createElement('input');
+                approveInput.type = 'hidden';
+                approveInput.name = 'orderIds';
+                approveInput.value = id;
+                approveInput.className = 'order-id-input';
+                document.getElementById('bulkApproveForm').appendChild(approveInput);
+                
+                // For reject form
+                const rejectInput = document.createElement('input');
+                rejectInput.type = 'hidden';
+                rejectInput.name = 'orderIds';
+                rejectInput.value = id;
+                rejectInput.className = 'order-id-input';
+                document.getElementById('bulkRejectForm').appendChild(rejectInput);
+            });
+        } else {
+            bulkActionsBar.classList.add('hidden');
+            selectAllCheckbox.checked = false;
+        }
+
+        // Update "Select All" checkbox state
+        const allCheckboxes = document.querySelectorAll('.order-checkbox');
+        selectAllCheckbox.checked = allCheckboxes.length > 0 && count === allCheckboxes.length;
+    }
+
+    // Clear selection
+    function clearSelection() {
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        document.getElementById('selectAll').checked = false;
+        updateBulkActions();
+    }
+
+    // Confirm bulk approve
+    document.getElementById('bulkApproveForm').addEventListener('submit', function(e) {
+        const count = document.querySelectorAll('.order-checkbox:checked').length;
+        if (!confirm(`Are you sure you want to approve ${count} order(s)?`)) {
+            e.preventDefault();
+        }
+    });
+
+    // Confirm bulk reject
+    document.getElementById('bulkRejectForm').addEventListener('submit', function(e) {
+        const count = document.querySelectorAll('.order-checkbox:checked').length;
+        if (!confirm(`Are you sure you want to reject ${count} order(s)?`)) {
+            e.preventDefault();
+        }
+    });
+</script>
 }
