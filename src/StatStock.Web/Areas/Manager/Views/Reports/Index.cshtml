@@ -127,16 +127,43 @@
         // Load quick stats on page load
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const response = await fetch('/Manager/Dashboard/GetInventoryStats');
-                if (!response.ok) return;
+                // Get inventory stats
+                const statsResponse = await fetch('/Manager/Dashboard/GetInventoryStats');
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    const totalProducts = stats.reduce((sum, s) => sum + (s.count || 0), 0);
+                    const totalValue = stats.reduce((sum, s) => sum + (s.totalValue || 0), 0);
+                    
+                    document.getElementById('totalProducts').textContent = totalProducts;
+                    document.getElementById('totalValue').textContent = '$' + totalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+
+                // Get low stock count
+                const lowStockResponse = await fetch('/Manager/Reports/GetLowStockData');
+                if (lowStockResponse.ok) {
+                    const result = await lowStockResponse.json();
+                    document.getElementById('lowStockCount').textContent = result.data ? result.data.length : 0;
+                }
+
+                // Get orders this month
+                const now = new Date();
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                const startDate = firstDay.toISOString().split('T')[0];
+                const endDate = lastDay.toISOString().split('T')[0];
                 
-                const stats = await response.json();
-                
-                // Update stats (this is a simplified version - adjust based on actual API)
-                document.getElementById('totalProducts').textContent = stats.reduce((sum, s) => sum + s.Count, 0);
-                document.getElementById('totalValue').textContent = '$' + stats.reduce((sum, s) => sum + s.TotalValue, 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                const trendsResponse = await fetch(`/Manager/Reports/GetSalesTrendsData?startDate=${startDate}&endDate=${endDate}`);
+                if (trendsResponse.ok) {
+                    const result = await trendsResponse.json();
+                    const totalOrders = result.data ? result.data.reduce((sum, d) => sum + (d.incomingOrders || 0) + (d.outgoingOrders || 0), 0) : 0;
+                    document.getElementById('ordersThisMonth').textContent = totalOrders;
+                }
             } catch (error) {
                 console.error('Error loading stats:', error);
+                document.getElementById('totalProducts').textContent = 'Error';
+                document.getElementById('totalValue').textContent = 'Error';
+                document.getElementById('lowStockCount').textContent = 'Error';
+                document.getElementById('ordersThisMonth').textContent = 'Error';
             }
         });
     </script>
