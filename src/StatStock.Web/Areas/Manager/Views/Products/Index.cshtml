@@ -19,54 +19,60 @@
 }
 
 <!-- Header with Action Buttons -->
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-col mb-6 gap-3">
     <div>
-        <h1 class="text-3xl font-bold text-slate-900">Products</h1>
-        <p class="text-slate-500 mt-1">Manage your product inventory</p>
+        <h1 class="text-2xl lg:text-3xl font-bold text-slate-900">Products</h1>
+        <p class="text-slate-500 mt-1 text-sm">Manage your product inventory</p>
     </div>
-    <div class="flex items-center space-x-3">
-        <a href="/Manager/Products/Import" class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex items-center gap-1.5 flex-wrap">
+        <a href="/Manager/Products/Import" 
+           class="inline-flex items-center justify-center p-2 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+           title="Import products">
+            <svg class="w-4 h-4 flex-shrink-0 lg:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
             </svg>
-            Import
+            <span class="hidden md:inline">Import</span>
         </a>
-        <a href="/Manager/Products/Export" class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/Manager/Products/Export" 
+           class="inline-flex items-center justify-center p-2 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+           title="Export products">
+            <svg class="w-4 h-4 flex-shrink-0 lg:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
-            Export
+            <span class="hidden md:inline">Export</span>
         </a>
-        <a href="/Manager/Products/Create" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/Manager/Products/Create" 
+           class="inline-flex items-center justify-center px-2 lg:px-3 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-xs lg:text-sm font-semibold rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+           title="Create new product">
+            <svg class="w-4 h-4 flex-shrink-0 lg:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Create Product
+            <span class="hidden md:inline">Create</span>
         </a>
     </div>
 </div>
 
 <!-- Filter Section -->
 <div class="mb-6">
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 p-3 lg:p-6">
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4 items-end">
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Search</label>
+                <label class="block text-xs lg:text-sm font-semibold text-slate-700 mb-1 lg:mb-2">Search</label>
                 <div class="relative">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                     <input type="text" name="search" value="@ViewBag.CurrentSearch" 
-                           placeholder="Search by SKU or name..." 
-                           class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" />
+                           placeholder="Search..." 
+                           class="w-full pl-9 pr-3 py-2 lg:py-2.5 text-xs lg:text-sm border border-slate-300 rounded-lg lg:rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" />
                 </div>
             </div>
             
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+                <label class="block text-xs lg:text-sm font-semibold text-slate-700 mb-1 lg:mb-2">Category</label>
                 <select name="category" 
-                        class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
-                    <option value="">All Categories</option>
+                        class="w-full px-3 py-2 lg:py-2.5 text-xs lg:text-sm border border-slate-300 rounded-lg lg:rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
+                    <option value="">All</option>
                     @foreach (var category in ViewBag.Categories)
                     {
                         <option value="@category" selected="@(category == ViewBag.CurrentCategory)">@category</option>
@@ -75,20 +81,20 @@
             </div>
             
             <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Sort By</label>
+                <label class="block text-xs lg:text-sm font-semibold text-slate-700 mb-1 lg:mb-2">Sort By</label>
                 <select name="sortBy" 
-                        class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
-                    <option value="name" selected="@(ViewBag.CurrentSort == "name")">Name (A-Z)</option>
-                    <option value="price" selected="@(ViewBag.CurrentSort == "price")">Price (Low to High)</option>
-                    <option value="stock" selected="@(ViewBag.CurrentSort == "stock")">Stock (Low to High)</option>
+                        class="w-full px-3 py-2 lg:py-2.5 text-xs lg:text-sm border border-slate-300 rounded-lg lg:rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
+                    <option value="name" selected="@(ViewBag.CurrentSort == "name")">Name</option>
+                    <option value="price" selected="@(ViewBag.CurrentSort == "price")">Price</option>
+                    <option value="stock" selected="@(ViewBag.CurrentSort == "stock")">Stock</option>
                     <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
                 </select>
             </div>
             
             <div>
                 <button type="submit" 
-                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 font-semibold">
-                    Apply Filters
+                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-3 lg:px-6 py-2 lg:py-2.5 text-xs lg:text-sm rounded-lg lg:rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30 font-semibold">
+                    Apply
                 </button>
             </div>
         </form>
@@ -96,83 +102,83 @@
 </div>
 
 <!-- Products Table -->
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+<div class="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full text-xs lg:text-sm">
             <thead class="bg-slate-50 border-b border-slate-200">
                 <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">SKU</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Product</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Category</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Price</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Stock</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Actions</th>
+                    <th class="px-2 lg:px-4 py-2 lg:py-4 text-left font-bold text-slate-600 uppercase tracking-wider">SKU</th>
+                    <th class="px-2 lg:px-4 py-2 lg:py-4 text-left font-bold text-slate-600 uppercase tracking-wider">Product</th>
+                    <th class="px-2 lg:px-4 py-2 lg:py-4 text-left font-bold text-slate-600 uppercase tracking-wider">Category</th>
+                    <th class="px-2 lg:px-4 py-2 lg:py-4 text-left font-bold text-slate-600 uppercase tracking-wider">Price</th>
+                    <th class="px-2 lg:px-4 py-2 lg:py-4 text-left font-bold text-slate-600 uppercase tracking-wider">Stock</th>
+                    <th class="px-2 lg:px-4 py-2 lg:py-4 text-left font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                    <th class="px-2 lg:px-4 py-2 lg:py-4 text-left font-bold text-slate-600 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @foreach (var product in Model)
                 {
                     <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-4">
-                            <span class="font-mono text-sm font-semibold text-slate-900">@product.SKU</span>
+                        <td class="px-2 lg:px-4 py-2 lg:py-4">
+                            <span class="font-mono font-semibold text-slate-900 line-clamp-1">@product.SKU</span>
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <td class="px-2 lg:px-4 py-2 lg:py-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                    <svg class="w-4 h-4 lg:w-5 lg:h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                     </svg>
                                 </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-900">@product.Name</p>
-                                    <p class="text-xs text-slate-500 max-w-xs truncate">@product.Description</p>
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-slate-900 truncate">@product.Name</p>
+                                    <p class="text-xs text-slate-500 truncate">@product.Description</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700">
+                        <td class="px-2 lg:px-4 py-2 lg:py-4">
+                            <span class="inline-flex items-center px-1.5 lg:px-2.5 py-0.5 lg:py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700">
                                 @product.Category
                             </span>
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="text-sm font-bold text-slate-900">$@product.Price.ToString("N2")</span>
+                        <td class="px-2 lg:px-4 py-2 lg:py-4 whitespace-nowrap">
+                            <span class="font-bold text-slate-900">$@product.Price.ToString("N2")</span>
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-sm font-bold @(product.StockQuantity <= product.ReorderLevel ? "text-red-600" : "text-slate-900")">
+                        <td class="px-2 lg:px-4 py-2 lg:py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-1">
+                                <span class="font-bold @(product.StockQuantity <= product.ReorderLevel ? "text-red-600" : "text-slate-900")">
                                     @product.StockQuantity
                                 </span>
                                 @if (product.StockQuantity <= product.ReorderLevel)
                                 {
-                                    <span class="text-xs text-red-500">(min: @product.ReorderLevel)</span>
+                                    <span class="text-xs text-red-500 hidden lg:inline">(min: @product.ReorderLevel)</span>
                                 }
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-2 lg:px-4 py-2 lg:py-4">
                             @if (product.StockQuantity <= product.ReorderLevel)
                             {
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    ⚠️ Low Stock
+                                <span class="inline-flex items-center px-1.5 lg:px-2.5 py-0.5 lg:py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 whitespace-nowrap">
+                                    ⚠️ Low
                                 </span>
                             }
                             else if (product.StockQuantity <= product.ReorderLevel * 2)
                             {
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                    ⚡ Warning
+                                <span class="inline-flex items-center px-1.5 lg:px-2.5 py-0.5 lg:py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 whitespace-nowrap">
+                                    ⚡ Warn
                                 </span>
                             }
                             else
                             {
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    ✓ In Stock
+                                <span class="inline-flex items-center px-1.5 lg:px-2.5 py-0.5 lg:py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 whitespace-nowrap">
+                                    ✓ OK
                                 </span>
                             }
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-2">
+                        <td class="px-2 lg:px-4 py-2 lg:py-4">
+                            <div class="flex items-center space-x-1">
                                 <a href="/Manager/Products/Details/@product.Id" 
-                                   class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition"
+                                   class="inline-flex items-center p-1.5 lg:px-2 lg:py-1.5 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition"
                                    title="View Details">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -180,14 +186,14 @@
                                     </svg>
                                 </a>
                                 <a href="/Manager/Products/Edit/@product.Id" 
-                                   class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                                   class="inline-flex items-center p-1.5 lg:px-2 lg:py-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
                                    title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg>
                                 </a>
                                 <a href="/Manager/Products/Delete/@product.Id" 
-                                   class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                                   class="inline-flex items-center p-1.5 lg:px-2 lg:py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
                                    title="Delete">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -203,14 +209,14 @@
     
     @if (!Model.Any())
     {
-        <div class="text-center py-16">
-            <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="text-center py-8 lg:py-16">
+            <div class="w-12 h-12 lg:w-16 lg:h-16 bg-slate-100 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto mb-3 lg:mb-4">
+                <svg class="w-6 h-6 lg:w-8 lg:h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
             </div>
-            <h3 class="text-lg font-semibold text-slate-900 mb-1">No products found</h3>
-            <p class="text-sm text-slate-500">Try adjusting your search or filter to find what you're looking for.</p>
+            <h3 class="text-base lg:text-lg font-semibold text-slate-900 mb-1">No products found</h3>
+            <p class="text-xs lg:text-sm text-slate-500">Try adjusting your search or filter to find what you're looking for.</p>
         </div>
     }
 </div>
@@ -218,7 +224,7 @@
 <!-- Summary Stats -->
 @if (Model.Any())
 {
-    <div class="mt-6 flex items-center justify-between text-sm text-slate-500">
+    <div class="mt-4 lg:mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs lg:text-sm text-slate-500">
         <p>Showing <span class="font-semibold text-slate-700">@Model.Count()</span> products</p>
         <p>Total value: <span class="font-semibold text-slate-700">$@Model.Sum(p => p.Price * p.StockQuantity).ToString("N0")</span></p>
     </div>

@@ -32,12 +32,12 @@ public class DashboardController : Controller
                 RecentOrders = await _context.Orders
                     .Include(o => o.Supplier)
                     .OrderByDescending(o => o.CreatedAt)
-                    .Take(10)
+                    .Take(5)
                     .ToListAsync(),
                 LowStockItems = await _context.Products
                     .Where(p => p.StockQuantity <= p.ReorderLevel)
                     .OrderBy(p => p.StockQuantity)
-                    .Take(10)
+                    .Take(5)
                     .ToListAsync()
             };
 
