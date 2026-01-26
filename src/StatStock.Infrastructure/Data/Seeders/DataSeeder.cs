@@ -1,13 +1,21 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Domain.Entities;
 using StatStock.Domain.Enums;
+using StatStock.Infrastructure.Identity;
 
 namespace StatStock.Infrastructure.Data.Seeders;
 
 public static class DataSeeder
 {
-    public static async Task SeedAsync(ApplicationDbContext context)
+    public static async Task SeedAsync(ApplicationDbContext context, UserManager<ApplicationIdentityUser>? userManager = null)
     {
+        // Seed Users first (if UserManager is provided)
+        if (userManager != null)
+        {
+            await SeedUsersAsync(userManager);
+        }
+        
         // Seed Products
         await SeedProductsAsync(context);
         
@@ -19,6 +27,42 @@ public static class DataSeeder
         await SeedOrdersAsync(context);
         
         await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedUsersAsync(UserManager<ApplicationIdentityUser> userManager)
+    {
+        // Check if users already exist
+        if (await userManager.Users.AnyAsync())
+            return;
+
+        var users = new[]
+        {
+            new { Email = "admin@statstock.com", FirstName = "Admin", LastName = "User", Role = UserRole.Admin, Area = "All", Password = "Admin123!" },
+            new { Email = "manager@statstock.com", FirstName = "Manager", LastName = "User", Role = UserRole.Manager, Area = "Warehouse A", Password = "Manager123!" },
+            new { Email = "staff@statstock.com", FirstName = "Floor", LastName = "Staff", Role = UserRole.FloorStaff, Area = "Warehouse A", Password = "Staff123!" },
+            new { Email = "client@statstock.com", FirstName = "B2B", LastName = "Client", Role = UserRole.B2BClient, Area = "External", Password = "Client123!" },
+        };
+
+        foreach (var userData in users)
+        {
+            var user = new ApplicationIdentityUser
+            {
+                UserName = userData.Email,
+                Email = userData.Email,
+                FirstName = userData.FirstName,
+                LastName = userData.LastName,
+                Role = userData.Role,
+                Area = userData.Area,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var result = await userManager.CreateAsync(user, userData.Password);
+            if (result.Succeeded)
+            {
+                // Optionally add to roles here if using role-based authorization
+            }
+        }
     }
 
 

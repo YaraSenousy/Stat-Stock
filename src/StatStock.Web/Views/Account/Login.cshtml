@@ -1,0 +1,52 @@
+@model StatStock.Web.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm mt-5">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">Login</h2>
+                <form asp-action="Login" method="post">
+                    <input type="hidden" asp-for="@ViewData["ReturnUrl"]" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" class="form-control" placeholder="Enter your password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
+                    
+                    <div class="text-center">
+                        <a asp-action="Register" class="text-decoration-none">Don't have an account? Register</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3" role="alert">
+            <strong>Demo Credentials:</strong><br />
+            Admin: admin@statstock.com / Admin123!<br />
+            Manager: manager@statstock.com / Manager123!<br />
+            Staff: staff@statstock.com / Staff123!
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

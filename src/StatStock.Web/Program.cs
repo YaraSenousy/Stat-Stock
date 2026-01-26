@@ -13,6 +13,7 @@ using StatStock.Web.Api.Services;
 using StatStock.Web.Api.Middleware;
 using StatStock.Application.Interfaces;
 using StatStock.Infrastructure.Services;
+using Microsoft.AspNetCore.Identity;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -54,28 +55,47 @@ try
         Log.Information("Using SQLite database for non-Windows environment");
     }
 
-    // Add Authentication: Cookie for MVC + JWT for API
-    var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";
-    builder.Services.AddAuthentication(options =>
+    // Configure Identity
+    builder.Services.AddIdentity<ApplicationIdentityUser, Microsoft.AspNetCore.Identity.IdentityRole>(options =>
     {
-        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        // Password settings
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequiredLength = 6;
+        
+        // User settings
+        options.User.RequireUniqueEmail = true;
+        
+        // Sign in settings
+        options.SignIn.RequireConfirmedEmail = false;
     })
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+    // Configure Authentication Schemes (Identity Cookie + JWT for API)
+    var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";
+    builder.Services.ConfigureApplicationCookie(options =>
     {
         options.LoginPath = "/Account/Login";
-    })
-    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-        };
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
     });
+    
+    // Add JWT Bearer for API
+    builder.Services.AddAuthentication()
+        .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            };
+        });
 
     // Register API services
     builder.Services.AddScoped<ITokenService, TokenService>();
@@ -104,12 +124,13 @@ try
         try
         {
             var context = services.GetRequiredService<ApplicationDbContext>();
+            var userManager = services.GetRequiredService<UserManager<ApplicationIdentityUser>>();
             
             // Apply migrations
             await context.Database.MigrateAsync();
             
-            // Seed data (without Identity - not supported in .NET 10)
-            await DataSeeder.SeedAsync(context);
+            // Seed data with UserManager for user creation
+            await DataSeeder.SeedAsync(context, userManager);
             Log.Information("Database seeded successfully");
         }
         catch (Exception ex)
