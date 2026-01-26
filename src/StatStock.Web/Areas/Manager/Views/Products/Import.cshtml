@@ -1,0 +1,126 @@
+@{
+    ViewData["Title"] = "Import Products";
+}
+
+<!-- Back Button -->
+<div class="mb-6">
+    <a href="/Manager/Products" class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 bg-white rounded-xl border border-slate-200 hover:border-slate-300 shadow-sm transition-all">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Products
+    </a>
+</div>
+
+<!-- Success Message -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl mb-6">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<!-- Import Errors -->
+@if (ViewBag.ImportErrors != null)
+{
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
+        <h3 class="text-sm font-bold text-amber-800 mb-3">Import Warnings:</h3>
+        <ul class="list-disc list-inside space-y-1 text-sm text-amber-700">
+            @foreach (var error in (List<string>)ViewBag.ImportErrors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+<!-- Form Card -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <!-- Header -->
+    <div class="p-8 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+        <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Import Products</h1>
+                <p class="text-slate-500 text-sm mt-1">Upload a CSV file to import or update products</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="p-8">
+        <!-- Instructions -->
+        <div class="bg-primary-50 border border-primary-200 rounded-xl p-6 mb-8">
+            <h3 class="text-sm font-bold text-primary-800 mb-3 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Import Instructions
+            </h3>
+            <ul class="list-disc list-inside space-y-2 text-sm text-primary-700">
+                <li>Your CSV file must include the following columns: <strong>SKU, Name, Description, Category, Price, StockQuantity, ReorderLevel</strong></li>
+                <li>The first row should contain the column headers</li>
+                <li>If a product with the same SKU already exists, it will be <strong>updated</strong> with the new information</li>
+                <li>If a product with the SKU doesn't exist, a new product will be <strong>created</strong></li>
+                <li>Numeric values (Price, StockQuantity, ReorderLevel) must be valid numbers</li>
+                <li>Text fields containing commas should be enclosed in double quotes</li>
+            </ul>
+        </div>
+
+        <!-- Sample Format -->
+        <div class="bg-slate-50 rounded-xl p-6 mb-8">
+            <h3 class="text-sm font-bold text-slate-800 mb-3">Sample CSV Format:</h3>
+            <div class="bg-white rounded-lg p-4 border border-slate-200 overflow-x-auto">
+                <pre class="text-xs text-slate-600 font-mono">SKU,Name,Description,Category,Price,StockQuantity,ReorderLevel
+PROD-001,"Wireless Mouse","Ergonomic wireless mouse",Electronics,29.99,150,20
+PROD-002,"Office Chair","Comfortable office chair",Furniture,299.99,25,5</pre>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <form asp-action="Import" method="post" enctype="multipart/form-data" class="space-y-6">
+            <div asp-validation-summary="All" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl"></div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Select CSV File *</label>
+                <div class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-primary-400 transition-colors">
+                    <svg class="w-12 h-12 text-slate-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <input type="file" name="file" accept=".csv" required 
+                           class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 cursor-pointer" />
+                    <p class="text-xs text-slate-500 mt-2">CSV files only, max 10MB</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between pt-6 border-t border-slate-200">
+                <a href="/Manager/Products/Export" class="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download Template (Export Current Products)
+                </a>
+                <div class="flex items-center space-x-4">
+                    <a href="/Manager/Products" class="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-all">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30">
+                        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Import Products
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
