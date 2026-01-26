@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using StatStock.Web.Api.Services;
+using StatStock.Web.Api.Middleware;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -73,6 +75,11 @@ try
         };
     });
 
+    // Register API services
+    builder.Services.AddScoped<ITokenService, TokenService>();
+    builder.Services.AddScoped<IWebhookService, WebhookService>();
+    builder.Services.AddHttpClient();
+
     // Add Swagger
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
@@ -81,7 +88,7 @@ try
         {
             Title = "StatStock API",
             Version = "v1",
-            Description = "Inventory Management Platform API"
+            Description = "Inventory Management Platform API for B2B clients. Use /api/auth/token endpoint to get JWT token, then use 'Authorize' button with 'Bearer {token}' format."
         });
     });
 
@@ -125,6 +132,9 @@ try
 
     app.UseHttpsRedirection();
     app.UseRouting();
+
+    // Enable rate limiting for API endpoints
+    app.UseRateLimiting();
 
     // Enable authentication and authorization (Cookie for MVC, JWT for API)
     app.UseAuthentication();
