@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<TokenResponse>> GetToken([FromBody] TokenRequest request)
+    public ActionResult<TokenResponse> GetToken([FromBody] TokenRequest request)
     {
         try
         {
@@ -51,24 +51,10 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { message = "Invalid API key" });
             }
 
-            // Validate user exists (optional - for more secure implementation)
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            
-            string userId, email, role;
-            
-            if (user != null)
-            {
-                userId = user.Id;
-                email = user.Email;
-                role = user.Role.ToString();
-            }
-            else
-            {
-                // For B2B clients without user accounts, generate a generic token
-                userId = $"api-client-{Guid.NewGuid()}";
-                email = request.Email ?? "unknown@api.client";
-                role = "B2BClient";
-            }
+            // For B2B clients, generate a generic token based on email
+            var userId = $"api-client-{Guid.NewGuid()}";
+            var email = request.Email ?? "unknown@api.client";
+            var role = "B2BClient";
 
             var token = _tokenService.GenerateToken(userId, email, role);
 
