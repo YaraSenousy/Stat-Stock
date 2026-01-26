@@ -258,18 +258,30 @@ Returns products where stock quantity is at or below the reorder level.
 
 ## Orders API
 
+### Order Type Enum Values
+**IMPORTANT:** When creating or filtering orders, use integer enum values:
+- `0` = **Incoming** (Receiving inventory from suppliers)
+- `1` = **Outgoing** (Shipping inventory out)
+
+### Order Status Enum Values
+- `0` = **Pending** (Awaiting approval)
+- `1` = **Approved** (Approved, ready for processing)
+- `2` = **Shipped** (In transit)
+- `3` = **Delivered** (Completed)
+- `4` = **Cancelled** (Cancelled)
+
 ### List All Orders
 **Endpoint:** `GET /api/orders`
 
 **Query Parameters:**
-- `status` (string, optional): Filter by order status (Pending, Approved, Shipped, Delivered, Cancelled)
-- `type` (string, optional): Filter by order type (Incoming, Outgoing)
-- `fromDate` (datetime, optional): Filter orders created from this date
-- `toDate` (datetime, optional): Filter orders created until this date
+- `status` (integer, optional): Filter by order status (0=Pending, 1=Approved, 2=Shipped, 3=Delivered, 4=Cancelled)
+- `type` (integer, optional): Filter by order type (0=Incoming, 1=Outgoing)
+- `fromDate` (datetime, optional): Filter orders created from this date (format: YYYY-MM-DD)
+- `toDate` (datetime, optional): Filter orders created until this date (format: YYYY-MM-DD)
 
 **Example Request:**
 ```bash
-curl -X GET "http://localhost:5142/api/orders?status=Pending&type=Incoming" \
+curl -X GET "http://localhost:5142/api/orders?status=0&type=0" \
   -H "Authorization: Bearer {token}"
 ```
 
@@ -282,8 +294,8 @@ curl -X GET "http://localhost:5142/api/orders?status=Pending&type=Incoming" \
     {
       "id": 1,
       "orderNumber": "ORD-20260126013000",
-      "type": "Incoming",
-      "status": "Pending",
+      "type": 0,
+      "status": 0,
       "createdAt": "2026-01-26T01:30:00Z",
       "approvedAt": null,
       "notes": "Urgent order for Q1",
@@ -322,10 +334,19 @@ curl -X GET "http://localhost:5142/api/orders/1" \
 ### Create Order
 **Endpoint:** `POST /api/orders`
 
+**Important Validation Rules:**
+1. **Order Type:** Must be `0` (Incoming) or `1` (Outgoing)
+2. **Supplier Validation:** If `supplierId` is provided, the supplier must exist
+3. **Product Validation:** All product IDs must exist in the database
+4. **Stock Validation:** For **Outgoing** orders (type = 1), the system validates that sufficient stock is available for each product
+5. **Quantity Validation:** All quantities must be greater than zero
+6. **Price Validation:** Unit prices cannot be negative
+7. **Items Required:** Order must have at least one item
+
 **Request Body:**
 ```json
 {
-  "type": "Incoming",
+  "type": 0,
   "notes": "Urgent restocking order",
   "supplierId": 1,
   "items": [
@@ -343,7 +364,11 @@ curl -X GET "http://localhost:5142/api/orders/1" \
 }
 ```
 
-**Response:**
+**Note:** 
+- Use `type: 0` for **Incoming** orders (receiving inventory)
+- Use `type: 1` for **Outgoing** orders (shipping out - requires sufficient stock)
+
+**Success Response (201 Created):**
 ```json
 {
   "success": true,
@@ -351,8 +376,8 @@ curl -X GET "http://localhost:5142/api/orders/1" \
   "data": {
     "id": 5,
     "orderNumber": "ORD-20260126013530",
-    "type": "Incoming",
-    "status": "Pending",
+    "type": 0,
+    "status": 0,
     "createdAt": "2026-01-26T01:35:30Z",
     "approvedAt": null,
     "notes": "Urgent restocking order",
@@ -385,22 +410,42 @@ curl -X GET "http://localhost:5142/api/orders/1" \
 }
 ```
 
+**Validation Error Response (400 Bad Request):**
+```json
+{
+  "success": false,
+  "message": "Stock validation failed",
+  "data": null,
+  "errors": [
+    "Insufficient stock for product 'Business Laptop' (SKU: LAPTOP-001). Available: 5, Requested: 10"
+  ]
+}
+```
+
+**Common Validation Errors:**
+- `"Supplier with ID {id} not found"` - Invalid supplier ID
+- `"Products not found: 1, 2, 3"` - One or more product IDs don't exist
+- `"Insufficient stock for product..."` - Not enough stock for outgoing order
+- `"All item quantities must be greater than zero"` - Negative or zero quantities
+- `"Unit prices cannot be negative"` - Invalid pricing
+- `"Order must have at least one item"` - Empty items array
+
 ### Update Order Status
 **Endpoint:** `PATCH /api/orders/{id}/status`
 
 **Request Body:**
 ```json
 {
-  "status": "Approved"
+  "status": 2
 }
 ```
 
 **Valid Status Values:**
-- `Pending`
-- `Approved`
-- `Shipped`
-- `Delivered`
-- `Cancelled`
+- `0` = Pending
+- `1` = Approved
+- `2` = Shipped
+- `3` = Delivered
+- `4` = Cancelled
 
 **Response:**
 ```json
@@ -629,12 +674,12 @@ TOKEN=$(curl -s -X POST http://localhost:5142/api/auth/token \
 curl -X GET "http://localhost:5142/api/products" \
   -H "Authorization: Bearer $TOKEN"
 
-# Create order
+# Create order (Incoming = 0, Outgoing = 1)
 curl -X POST "http://localhost:5142/api/orders" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "type": "Incoming",
+    "type": 0,
     "notes": "Monthly restocking",
     "supplierId": 1,
     "items": [
@@ -663,7 +708,7 @@ print(products.json())
 
 # Create order
 order_data = {
-    'type': 'Incoming',
+    'type': 0,  # 0 = Incoming, 1 = Outgoing
     'notes': 'Monthly restocking',
     'supplierId': 1,
     'items': [
@@ -697,7 +742,7 @@ async function main() {
 
   // Create order
   const orderData = {
-    type: 'Incoming',
+    type: 0,  // 0 = Incoming, 1 = Outgoing
     notes: 'Monthly restocking',
     supplierId: 1,
     items: [

@@ -180,9 +180,31 @@ public class OrdersController : ControllerBase
     {
         try
         {
+            // Validate items
             if (createDto.Items == null || !createDto.Items.Any())
             {
                 return BadRequest(ApiResponse<OrderDto>.ErrorResult("Order must have at least one item"));
+            }
+
+            // Validate quantities
+            if (createDto.Items.Any(i => i.Quantity <= 0))
+            {
+                return BadRequest(ApiResponse<OrderDto>.ErrorResult("All item quantities must be greater than zero"));
+            }
+
+            if (createDto.Items.Any(i => i.UnitPrice < 0))
+            {
+                return BadRequest(ApiResponse<OrderDto>.ErrorResult("Unit prices cannot be negative"));
+            }
+
+            // Validate supplier exists (if provided)
+            if (createDto.SupplierId.HasValue)
+            {
+                var supplierExists = await _context.Suppliers.AnyAsync(s => s.Id == createDto.SupplierId.Value);
+                if (!supplierExists)
+                {
+                    return BadRequest(ApiResponse<OrderDto>.ErrorResult($"Supplier with ID {createDto.SupplierId.Value} not found"));
+                }
             }
 
             // Validate products exist
@@ -193,7 +215,28 @@ public class OrdersController : ControllerBase
 
             if (products.Count != productIds.Count)
             {
-                return BadRequest(ApiResponse<OrderDto>.ErrorResult("One or more products not found"));
+                var missingProductIds = productIds.Except(products.Select(p => p.Id));
+                return BadRequest(ApiResponse<OrderDto>.ErrorResult($"Products not found: {string.Join(", ", missingProductIds)}"));
+            }
+
+            // Validate stock for outgoing orders
+            if (createDto.Type == OrderType.Outgoing)
+            {
+                var validationErrors = new List<string>();
+                
+                foreach (var item in createDto.Items)
+                {
+                    var product = products.First(p => p.Id == item.ProductId);
+                    if (product.StockQuantity < item.Quantity)
+                    {
+                        validationErrors.Add($"Insufficient stock for product '{product.Name}' (SKU: {product.SKU}). Available: {product.StockQuantity}, Requested: {item.Quantity}");
+                    }
+                }
+
+                if (validationErrors.Any())
+                {
+                    return BadRequest(ApiResponse<OrderDto>.ErrorResult("Stock validation failed", validationErrors));
+                }
             }
 
             // Get userId from JWT claims
