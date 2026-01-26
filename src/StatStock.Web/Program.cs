@@ -102,6 +102,7 @@ try
     builder.Services.AddScoped<ITokenService, TokenService>();
     builder.Services.AddScoped<IWebhookService, WebhookService>();
     builder.Services.AddScoped<IReportService, ReportService>();
+    builder.Services.AddScoped<IAuditService, AuditService>();
     builder.Services.AddHttpClient();
 
     // Add Swagger

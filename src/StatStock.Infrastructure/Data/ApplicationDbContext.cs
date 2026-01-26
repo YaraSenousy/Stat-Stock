@@ -17,6 +17,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationIdentityUser>
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,6 +84,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationIdentityUser>
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Role).HasConversion<string>();
             entity.Property(e => e.Area).HasMaxLength(100);
+        });
+
+        // AuditLog configuration
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).HasMaxLength(450);
+            entity.Property(e => e.UserEmail).HasMaxLength(256);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityId).HasMaxLength(100);
+            entity.Property(e => e.IpAddress).HasMaxLength(45);
+            entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => e.UserId);
         });
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using StatStock.Application.Interfaces;
 using StatStock.Domain.Enums;
 using StatStock.Infrastructure.Identity;
 using StatStock.Web.Models;
@@ -14,15 +15,18 @@ public class AccountController : Controller
 {
     private readonly UserManager<ApplicationIdentityUser> _userManager;
     private readonly SignInManager<ApplicationIdentityUser> _signInManager;
+    private readonly IAuditService _auditService;
     private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         UserManager<ApplicationIdentityUser> userManager,
         SignInManager<ApplicationIdentityUser> signInManager,
+        IAuditService auditService,
         ILogger<AccountController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _auditService = auditService;
         _logger = logger;
     }
 
@@ -64,6 +68,11 @@ public class AccountController : Controller
         if (result.Succeeded)
         {
             _logger.LogInformation("User {Email} logged in with role {Role}", model.Email, user.Role);
+            
+            // Log login event
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            await _auditService.LogAsync(user.Id, user.Email!, "Login", "Authentication", user.Id, 
+                null, $"Role: {user.Role}", ipAddress);
             
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
@@ -140,7 +149,19 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
+        var userId = _userManager.GetUserId(User);
+        var userEmail = _userManager.GetUserName(User) ?? "Unknown";
+        
         await _signInManager.SignOutAsync();
+        
+        // Log logout event
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            await _auditService.LogAsync(userId, userEmail, "Logout", "Authentication", userId, 
+                null, null, ipAddress);
+        }
+        
         _logger.LogInformation("User logged out");
         return RedirectToAction("Index", "Home");
     }
