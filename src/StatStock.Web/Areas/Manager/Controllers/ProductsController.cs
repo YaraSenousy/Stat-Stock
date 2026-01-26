@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Infrastructure.Data;
 using StatStock.Domain.Entities;
+using System.Text;
 
 namespace StatStock.Web.Areas.Manager.Controllers;
 
@@ -313,5 +314,227 @@ public class ProductsController : Controller
     private async Task<bool> ProductExists(int id)
     {
         return await _context.Products.AnyAsync(e => e.Id == id);
+    }
+
+    // GET: Manager/Products/Export
+    public async Task<IActionResult> Export()
+    {
+        try
+        {
+            var products = await _context.Products
+                .OrderBy(p => p.Category)
+                .ThenBy(p => p.Name)
+                .ToListAsync();
+
+            var csv = new StringBuilder();
+            // Add CSV header
+            csv.AppendLine("SKU,Name,Description,Category,Price,StockQuantity,ReorderLevel");
+
+            // Add data rows
+            foreach (var product in products)
+            {
+                csv.AppendLine($"\"{product.SKU}\",\"{EscapeCsv(product.Name)}\",\"{EscapeCsv(product.Description)}\",\"{EscapeCsv(product.Category)}\",{product.Price},{product.StockQuantity},{product.ReorderLevel}");
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+            var fileName = $"products_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+
+            _logger.LogInformation("Products exported to CSV. {Count} products exported.", products.Count);
+
+            return File(bytes, "text/csv", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting products");
+            TempData["ErrorMessage"] = "An error occurred while exporting products.";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
+    // GET: Manager/Products/Import
+    public IActionResult Import()
+    {
+        return View();
+    }
+
+    // POST: Manager/Products/Import
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Import(IFormFile? file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+            {
+                ModelState.AddModelError("", "Please select a file to import.");
+                return View();
+            }
+
+            if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("", "Only CSV files are supported.");
+                return View();
+            }
+
+            var importedCount = 0;
+            var updatedCount = 0;
+            var errorCount = 0;
+            var errors = new List<string>();
+
+            using (var reader = new StreamReader(file.OpenReadStream()))
+            {
+                // Skip header
+                await reader.ReadLineAsync();
+
+                while (!reader.EndOfStream)
+                {
+                    var line = await reader.ReadLineAsync();
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    try
+                    {
+                        var values = ParseCsvLine(line);
+                        
+                        if (values.Length < 7)
+                        {
+                            errors.Add($"Invalid row format: {line}");
+                            errorCount++;
+                            continue;
+                        }
+
+                        var sku = values[0].Trim();
+                        var name = values[1].Trim();
+                        var description = values[2].Trim();
+                        var category = values[3].Trim();
+                        
+                        if (!decimal.TryParse(values[4], out var price) || price < 0)
+                        {
+                            errors.Add($"Invalid price for SKU {sku}: {values[4]}");
+                            errorCount++;
+                            continue;
+                        }
+                        
+                        if (!int.TryParse(values[5], out var stockQuantity) || stockQuantity < 0)
+                        {
+                            errors.Add($"Invalid stock quantity for SKU {sku}: {values[5]}");
+                            errorCount++;
+                            continue;
+                        }
+                        
+                        if (!int.TryParse(values[6], out var reorderLevel) || reorderLevel < 0)
+                        {
+                            errors.Add($"Invalid reorder level for SKU {sku}: {values[6]}");
+                            errorCount++;
+                            continue;
+                        }
+
+                        // Check if product exists
+                        var existingProduct = await _context.Products
+                            .FirstOrDefaultAsync(p => p.SKU == sku);
+
+                        if (existingProduct != null)
+                        {
+                            // Update existing product
+                            existingProduct.Name = name;
+                            existingProduct.Description = description;
+                            existingProduct.Category = category;
+                            existingProduct.Price = price;
+                            existingProduct.StockQuantity = stockQuantity;
+                            existingProduct.ReorderLevel = reorderLevel;
+                            existingProduct.UpdatedAt = DateTime.UtcNow;
+                            updatedCount++;
+                        }
+                        else
+                        {
+                            // Create new product
+                            var product = new Product
+                            {
+                                SKU = sku,
+                                Name = name,
+                                Description = description,
+                                Category = category,
+                                Price = price,
+                                StockQuantity = stockQuantity,
+                                ReorderLevel = reorderLevel,
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            };
+                            _context.Products.Add(product);
+                            importedCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Error processing row: {line}. {ex.Message}");
+                        errorCount++;
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Products imported. {ImportedCount} new, {UpdatedCount} updated, {ErrorCount} errors.",
+                importedCount, updatedCount, errorCount);
+
+            var message = $"Import completed! {importedCount} new product(s) created, {updatedCount} product(s) updated.";
+            if (errorCount > 0)
+            {
+                message += $" {errorCount} error(s) occurred.";
+                ViewBag.ImportErrors = errors;
+            }
+            
+            TempData["SuccessMessage"] = message;
+            
+            return View();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error importing products");
+            ModelState.AddModelError("", "An error occurred while importing products: " + ex.Message);
+            return View();
+        }
+    }
+
+    private string EscapeCsv(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
+        
+        return value.Replace("\"", "\"\"");
+    }
+
+    private string[] ParseCsvLine(string line)
+    {
+        var values = new List<string>();
+        var current = new StringBuilder();
+        var inQuotes = false;
+
+        for (int i = 0; i < line.Length; i++)
+        {
+            if (line[i] == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    current.Append('"');
+                    i++; // Skip next quote
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (line[i] == ',' && !inQuotes)
+            {
+                values.Add(current.ToString());
+                current.Clear();
+            }
+            else
+            {
+                current.Append(line[i]);
+            }
+        }
+        
+        values.Add(current.ToString());
+        return values.ToArray();
     }
 }
