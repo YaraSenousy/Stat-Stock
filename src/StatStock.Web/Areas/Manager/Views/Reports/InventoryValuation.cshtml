@@ -1,0 +1,136 @@
+@{
+    ViewData["Title"] = "Inventory Valuation Report";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Inventory Valuation Report</h1>
+        <a href="@Url.Action("Index")" class="text-blue-500 hover:text-blue-700">← Back to Reports</a>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="mb-6 flex gap-4">
+        <button onclick="exportExcel()" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Export to Excel
+        </button>
+        <button onclick="exportPdf()" class="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            Export to PDF
+        </button>
+    </div>
+
+    <!-- Report Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div id="loadingIndicator" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p class="mt-2 text-gray-600">Loading report...</p>
+        </div>
+        
+        <div id="reportContent" class="hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Qty</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody" class="bg-white divide-y divide-gray-200">
+                </tbody>
+                <tfoot id="reportTableFooter" class="bg-gray-50 font-bold">
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="emptyState" class="hidden text-center py-8 text-gray-500">
+            No products found in inventory.
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function loadReport() {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('reportContent').classList.add('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+
+            try {
+                const response = await fetch('/Manager/Reports/GetInventoryValuationData');
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    renderTable(result.data);
+                    document.getElementById('reportContent').classList.remove('hidden');
+                } else {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading report:', error);
+                alert('Failed to load report. Please try again.');
+            } finally {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('reportTableBody');
+            const tfoot = document.getElementById('reportTableFooter');
+            tbody.innerHTML = '';
+
+            let totalStock = 0, totalValue = 0;
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                
+                const statusColor = item.stockStatus === 'Low Stock' ? 'text-red-600' : 
+                                  item.stockStatus === 'Warning' ? 'text-orange-600' : 'text-green-600';
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.productName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.sku}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.stockQuantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${item.unitPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">$${item.totalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${statusColor} font-medium">${item.stockStatus}</td>
+                `;
+                tbody.appendChild(row);
+
+                totalStock += item.stockQuantity;
+                totalValue += item.totalValue;
+            });
+
+            tfoot.innerHTML = `
+                <tr>
+                    <td class="px-6 py-4 text-sm text-gray-900" colspan="3">TOTALS</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${totalStock}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${totalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
+                </tr>
+            `;
+        }
+
+        function exportExcel() {
+            window.location.href = '/Manager/Reports/ExportInventoryValuationExcel';
+        }
+
+        function exportPdf() {
+            window.location.href = '/Manager/Reports/ExportInventoryValuationPdf';
+        }
+
+        // Load report on page load
+        document.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+}

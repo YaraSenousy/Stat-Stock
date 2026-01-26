@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using StatStock.Web.Api.Services;
 using StatStock.Web.Api.Middleware;
+using StatStock.Application.Interfaces;
+using StatStock.Infrastructure.Services;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -78,6 +80,7 @@ try
     // Register API services
     builder.Services.AddScoped<ITokenService, TokenService>();
     builder.Services.AddScoped<IWebhookService, WebhookService>();
+    builder.Services.AddScoped<IReportService, ReportService>();
     builder.Services.AddHttpClient();
 
     // Add Swagger

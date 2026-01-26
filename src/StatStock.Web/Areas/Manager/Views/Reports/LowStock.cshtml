@@ -1,0 +1,123 @@
+@{
+    ViewData["Title"] = "Low Stock Items Report";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Low Stock Items Report</h1>
+        <a href="@Url.Action("Index")" class="text-blue-500 hover:text-blue-700">← Back to Reports</a>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="mb-6 flex gap-4">
+        <button onclick="exportExcel()" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Export to Excel
+        </button>
+        <button onclick="exportPdf()" class="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            Export to PDF
+        </button>
+    </div>
+
+    <!-- Report Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div id="loadingIndicator" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p class="mt-2 text-gray-600">Loading report...</p>
+        </div>
+        
+        <div id="reportContent" class="hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reorder Level</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deficit</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rec. Order</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="emptyState" class="hidden text-center py-8 text-gray-500">
+            <svg class="w-16 h-16 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-lg">Great! No low stock items found.</p>
+            <p class="text-sm text-gray-400 mt-2">All products are above their reorder levels.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function loadReport() {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('reportContent').classList.add('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+
+            try {
+                const response = await fetch('/Manager/Reports/GetLowStockData');
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    renderTable(result.data);
+                    document.getElementById('reportContent').classList.remove('hidden');
+                } else {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading report:', error);
+                alert('Failed to load report. Please try again.');
+            } finally {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                
+                const deficitColor = item.currentStock === 0 ? 'text-red-700 font-bold' : 'text-red-600';
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.productName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.sku}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${deficitColor}">${item.currentStock}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.reorderLevel}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">${item.stockDeficit}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-semibold">${item.recommendedOrderQuantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.supplierName || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function exportExcel() {
+            window.location.href = '/Manager/Reports/ExportLowStockExcel';
+        }
+
+        function exportPdf() {
+            window.location.href = '/Manager/Reports/ExportLowStockPdf';
+        }
+
+        // Load report on page load
+        document.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+}
