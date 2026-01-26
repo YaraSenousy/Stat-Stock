@@ -20,9 +20,17 @@
 }
 
 <!-- Header -->
-<div class="mb-6">
-    <h1 class="text-3xl font-bold text-slate-900">Categories</h1>
-    <p class="text-slate-500 mt-1">Manage product categories</p>
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-3xl font-bold text-slate-900">Categories</h1>
+        <p class="text-slate-500 mt-1">Manage product categories</p>
+    </div>
+    <button onclick="openCreateModal()" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all shadow-lg shadow-primary-500/30">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Create Category
+    </button>
 </div>
 
 <!-- Categories Grid -->
@@ -92,9 +100,39 @@
             </svg>
         </div>
         <p class="text-slate-500 font-medium">No categories found</p>
-        <p class="text-slate-400 text-sm mt-1">Categories will appear automatically when you add products</p>
+        <p class="text-slate-400 text-sm mt-1">Get started by creating your first category</p>
+        <button onclick="openCreateModal()" class="inline-flex items-center px-4 py-2 mt-4 text-sm font-medium text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Create Category
+        </button>
     </div>
 }
+
+<!-- Create Modal -->
+<div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+        <div class="p-6 border-b border-slate-100">
+            <h3 class="text-xl font-bold text-slate-900">Create Category</h3>
+        </div>
+        <form asp-action="Create" method="post" class="p-6">
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Category Name *</label>
+                <input type="text" name="name" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" placeholder="Enter category name" />
+                <p class="text-xs text-slate-500 mt-1">This will create a new product category</p>
+            </div>
+            <div class="flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeCreateModal()" class="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 transition shadow-lg shadow-primary-500/30">
+                    Create Category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Rename Modal -->
 <div id="renameModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -167,6 +205,14 @@
     <script>
         let currentCategory = '';
         
+        function openCreateModal() {
+            document.getElementById('createModal').classList.remove('hidden');
+        }
+        
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.add('hidden');
+        }
+        
         function openRenameModal(categoryNameJson) {
             const categoryName = JSON.parse(categoryNameJson);
             currentCategory = categoryName;
@@ -202,6 +248,10 @@
         }
         
         // Close modals when clicking outside
+        document.getElementById('createModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCreateModal();
+        });
+        
         document.getElementById('renameModal').addEventListener('click', function(e) {
             if (e.target === this) closeRenameModal();
         });

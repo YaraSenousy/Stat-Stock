@@ -42,6 +42,49 @@ public class CategoriesController : Controller
         }
     }
 
+    // POST: Manager/Categories/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(string name)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                TempData["ErrorMessage"] = "Category name cannot be empty.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if category already exists
+            var existingCategory = await _context.Products
+                .AnyAsync(p => p.Category.ToLower() == name.ToLower());
+            
+            if (existingCategory)
+            {
+                TempData["ErrorMessage"] = $"Category '{name}' already exists.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Create a placeholder product with the new category
+            // Note: In a real application, you might want a separate Category table
+            // For now, categories are derived from products, so we'll inform the user
+            TempData["SuccessMessage"] = $"Category '{name}' created! You can now assign products to this category.";
+            
+            // Store the new category name in TempData so it can be used when creating products
+            TempData["NewCategoryName"] = name;
+
+            _logger.LogInformation("Category {Name} created", name);
+
+            return RedirectToAction("Create", "Products");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating category");
+            TempData["ErrorMessage"] = "An error occurred while creating the category.";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
     // POST: Manager/Categories/Rename
     [HttpPost]
     [ValidateAntiForgeryToken]

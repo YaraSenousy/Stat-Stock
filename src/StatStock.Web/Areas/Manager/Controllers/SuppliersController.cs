@@ -22,7 +22,7 @@ public class SuppliersController : Controller
     {
         try
         {
-            var query = _context.Suppliers.AsQueryable();
+            var query = _context.Suppliers.Include(s => s.Orders).AsQueryable();
 
             // Search by name, email, or phone
             if (!string.IsNullOrEmpty(search))
