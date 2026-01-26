@@ -1,0 +1,209 @@
+@using StatStock.Web.Areas.Manager.Controllers
+@model IEnumerable<CategoryViewModel>
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl mb-6">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl mb-6">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-slate-900">Categories</h1>
+    <p class="text-slate-500 mt-1">Manage product categories</p>
+</div>
+
+<!-- Categories Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @foreach (var category in Model)
+    {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <!-- Category Header -->
+            <div class="p-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">@category.Name</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Products</p>
+                        <p class="text-2xl font-bold text-slate-900 mt-1">@category.ProductCount</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Low Stock</p>
+                        <p class="text-2xl font-bold @(category.LowStockCount > 0 ? "text-red-600" : "text-emerald-600") mt-1">
+                            @category.LowStockCount
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="p-4 bg-slate-50 flex items-center justify-end space-x-2">
+                <button onclick="openRenameModal('@category.Name')" 
+                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Rename
+                </button>
+                <button onclick="openDeleteModal('@category.Name', @category.ProductCount)" 
+                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-16 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+            </svg>
+        </div>
+        <p class="text-slate-500 font-medium">No categories found</p>
+        <p class="text-slate-400 text-sm mt-1">Categories will appear automatically when you add products</p>
+    </div>
+}
+
+<!-- Rename Modal -->
+<div id="renameModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+        <div class="p-6 border-b border-slate-100">
+            <h3 class="text-xl font-bold text-slate-900">Rename Category</h3>
+        </div>
+        <form asp-action="Rename" method="post" class="p-6">
+            <input type="hidden" name="oldName" id="renameOldName" />
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Current Name</label>
+                <input type="text" id="renameCurrentName" readonly class="w-full px-4 py-2.5 border border-slate-300 rounded-xl bg-slate-50" />
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">New Name *</label>
+                <input type="text" name="newName" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" placeholder="Enter new category name" />
+            </div>
+            <div class="flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeRenameModal()" class="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold rounded-xl hover:from-primary-700 hover:to-primary-800 transition shadow-lg shadow-primary-500/30">
+                    Rename Category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+        <div class="p-6 border-b border-slate-100">
+            <h3 class="text-xl font-bold text-slate-900">Delete Category</h3>
+        </div>
+        <form asp-action="Delete" method="post" class="p-6">
+            <input type="hidden" name="name" id="deleteName" />
+            
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p class="text-sm text-red-800">
+                    <strong id="deleteMessage"></strong>
+                </p>
+            </div>
+            
+            <div id="moveToCategorySection" class="mb-6">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Move products to *</label>
+                <select name="moveToCategory" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition bg-white">
+                    <option value="">Select a category...</option>
+                    @foreach (var cat in Model)
+                    {
+                        <option value="@cat.Name">@cat.Name (@cat.ProductCount products)</option>
+                    }
+                </select>
+                <p class="text-xs text-slate-500 mt-1">Products from the deleted category will be moved to this category</p>
+            </div>
+            
+            <div class="flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-red-800 transition shadow-lg shadow-red-500/30">
+                    Delete Category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentCategory = '';
+        
+        function openRenameModal(categoryName) {
+            currentCategory = categoryName;
+            document.getElementById('renameOldName').value = categoryName;
+            document.getElementById('renameCurrentName').value = categoryName;
+            document.getElementById('renameModal').classList.remove('hidden');
+        }
+        
+        function closeRenameModal() {
+            document.getElementById('renameModal').classList.add('hidden');
+        }
+        
+        function openDeleteModal(categoryName, productCount) {
+            document.getElementById('deleteName').value = categoryName;
+            document.getElementById('deleteMessage').textContent = 
+                `This category contains ${productCount} product(s). You must move them to another category before deletion.`;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            
+            // Hide the category being deleted from the dropdown
+            const options = document.querySelectorAll('#moveToCategorySection select option');
+            options.forEach(option => {
+                if (option.value === categoryName) {
+                    option.style.display = 'none';
+                } else {
+                    option.style.display = 'block';
+                }
+            });
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+        
+        // Close modals when clicking outside
+        document.getElementById('renameModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRenameModal();
+        });
+        
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+    </script>
+}
