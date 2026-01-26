@@ -16,7 +16,7 @@ public static class DataSeeder
         
         // Note: Orders seeding disabled because it requires users
         // Uncomment when user management is implemented
-        // await SeedOrdersAsync(context);
+        await SeedOrdersAsync(context);
         
         await context.SaveChangesAsync();
     }
@@ -95,6 +95,106 @@ public static class DataSeeder
         await context.Suppliers.AddRangeAsync(suppliers);
     }
 
-    // Note: Order seeding removed - requires user management
+    private static async Task SeedOrdersAsync(ApplicationDbContext context)
+    {
+        var testOrderNumbers = new[] { "ORD-20260125-001", "ORD-20260120-002", "ORD-20260118-003", "ORD-20260115-004" };
+        
+        // Check if any of our test orders already exist
+        var existingTestOrders = await context.Orders
+            .Where(o => testOrderNumbers.Contains(o.OrderNumber))
+            .Include(o => o.Items)  // Include items for deletion
+            .ToListAsync();
+
+        // If we have all test orders with correct status, skip seeding
+        var allCorrectStatus = existingTestOrders
+            .Where(o => o.OrderNumber == "ORD-20260118-003" || o.OrderNumber == "ORD-20260115-004")
+            .All(o => (o.OrderNumber == "ORD-20260118-003" && o.Status == OrderStatus.Approved) ||
+                      (o.OrderNumber == "ORD-20260115-004" && o.Status == OrderStatus.Delivered))
+            && existingTestOrders
+            .Where(o => o.OrderNumber == "ORD-20260125-001" || o.OrderNumber == "ORD-20260120-002")
+            .All(o => o.Status == OrderStatus.Pending);
+        
+        if (existingTestOrders.Count == testOrderNumbers.Length && allCorrectStatus)
+            return;
+
+        // Remove any existing test orders to allow fresh seeding
+        if (existingTestOrders.Any())
+        {
+            // Remove items first (cascade delete should handle this, but being explicit)
+            var itemsToDelete = existingTestOrders.SelectMany(o => o.Items).ToList();
+            foreach (var item in itemsToDelete)
+            {
+                context.OrderItems.Remove(item);
+            }
+            context.Orders.RemoveRange(existingTestOrders);
+            await context.SaveChangesAsync();
+        }
+
+        var orders = new List<Order>
+        {
+            new Order
+            {
+                OrderNumber = "ORD-20260125-001",
+                Type = OrderType.Incoming,
+                Status = OrderStatus.Pending,  // ← Key: Not approved
+                CreatedAt = DateTime.Now.AddDays(-5),
+                ApprovedAt = null,
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ProductId = 1, Quantity = 15, UnitPrice = 60m }
+                },
+                SupplierId = 4,  // Changed from 1 (TechWholesale) to 4 (FurniturePro) - not a trusted supplier
+                UserId = "1"
+            },
+
+            new Order
+            {
+                OrderNumber = "ORD-20260120-002",
+                Type = OrderType.Incoming,
+                Status = OrderStatus.Pending,
+                CreatedAt = DateTime.Now.AddDays(-10),
+                ApprovedAt = null,
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ProductId = 3, Quantity = 50, UnitPrice = 20.00m }  // Reduced from 400 to 20 for total $1000 > $500, not auto-approved by Rule 1
+                },
+                SupplierId = 3,  // Changed to Global Parts Ltd. - not a trusted supplier
+                UserId = "1"
+            },
+
+            // Approved orders (for status filter testing)
+            new Order
+            {
+                OrderNumber = "ORD-20260118-003",
+                Type = OrderType.Incoming,
+                Status = OrderStatus.Approved,
+                CreatedAt = DateTime.Now.AddDays(-15),
+                ApprovedAt = DateTime.Now.AddDays(-14),
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ProductId = 2, Quantity = 5, UnitPrice = 199.99m }
+                },
+                SupplierId = 1,
+                UserId = "1"
+            },
+
+            // Delivered orders (for different status testing)
+            new Order
+            {
+                OrderNumber = "ORD-20260115-004",
+                Type = OrderType.Outgoing,
+                Status = OrderStatus.Delivered,
+                CreatedAt = DateTime.Now.AddDays(-20),
+                ApprovedAt = DateTime.Now.AddDays(-19),
+                Items = new List<OrderItem>
+                {
+                    new OrderItem { ProductId = 4, Quantity = 3, UnitPrice = 450.00m }
+                },
+                SupplierId = 3,
+                UserId = "1"
+            },
+        };
+        await context.Orders.AddRangeAsync(orders);
+    }
 }
 
