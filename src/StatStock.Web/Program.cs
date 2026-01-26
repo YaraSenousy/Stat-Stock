@@ -72,7 +72,8 @@ try
         options.SignIn.RequireConfirmedEmail = false;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>();
 
     // Configure Authentication Schemes (Identity Cookie + JWT for API)
     var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";

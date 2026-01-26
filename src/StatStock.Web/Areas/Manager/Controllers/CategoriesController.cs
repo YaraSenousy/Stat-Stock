@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Infrastructure.Data;
@@ -5,6 +6,7 @@ using StatStock.Infrastructure.Data;
 namespace StatStock.Web.Areas.Manager.Controllers;
 
 [Area("Manager")]
+[Authorize(Roles = "Admin,Manager")]
 public class CategoriesController : Controller
 {
     private readonly ApplicationDbContext _context;

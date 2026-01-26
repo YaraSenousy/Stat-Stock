@@ -46,15 +46,24 @@ public class AccountController : Controller
             return View(model);
         }
 
+        // Find user by email
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            return View(model);
+        }
+
+        // Sign in with password (claims are added automatically via ApplicationUserClaimsPrincipalFactory)
         var result = await _signInManager.PasswordSignInAsync(
-            model.Email, 
+            user.UserName ?? model.Email, 
             model.Password, 
             model.RememberMe, 
             lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
-            _logger.LogInformation("User {Email} logged in", model.Email);
+            _logger.LogInformation("User {Email} logged in with role {Role}", model.Email, user.Role);
             
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
@@ -62,18 +71,12 @@ public class AccountController : Controller
             }
             
             // Redirect based on role
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user != null)
+            return user.Role switch
             {
-                return user.Role switch
-                {
-                    UserRole.Admin or UserRole.Manager => RedirectToAction("Index", "Dashboard", new { area = "Manager" }),
-                    UserRole.FloorStaff => RedirectToAction("Index", "Terminal", new { area = "Terminal" }),
-                    _ => RedirectToAction("Index", "Home")
-                };
-            }
-            
-            return RedirectToAction("Index", "Home");
+                UserRole.Admin or UserRole.Manager => RedirectToAction("Index", "Dashboard", new { area = "Manager" }),
+                UserRole.FloorStaff => RedirectToAction("Index", "Terminal", new { area = "Terminal" }),
+                _ => RedirectToAction("Index", "Home")
+            };
         }
 
         ModelState.AddModelError(string.Empty, "Invalid login attempt.");

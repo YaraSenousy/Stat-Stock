@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StatStock.Application.Interfaces;
 
 namespace StatStock.Web.Areas.Manager.Controllers;
 
 [Area("Manager")]
+[Authorize(Roles = "Admin,Manager")]
 public class ReportsController : Controller
 {
     private readonly IReportService _reportService;
