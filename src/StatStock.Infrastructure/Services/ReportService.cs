@@ -33,6 +33,20 @@ public class ReportService : IReportService
             .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
             .ToListAsync();
 
+        // Get all unique product IDs from the orders
+        var productIds = orders
+            .SelectMany(o => o.Items)
+            .Select(i => i.ProductId)
+            .Distinct()
+            .ToList();
+
+        // Load all relevant products once
+        var products = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+        
+        var productDict = products.ToDictionary(p => p.Id);
+
         var productMovements = orders
             .SelectMany(o => o.Items)
             .GroupBy(i => new { i.Product.Id, i.Product.Name, i.Product.SKU })
@@ -40,7 +54,7 @@ public class ReportService : IReportService
             {
                 var incoming = g.Where(i => i.Order.Type == OrderType.Incoming).Sum(i => i.Quantity);
                 var outgoing = g.Where(i => i.Order.Type == OrderType.Outgoing).Sum(i => i.Quantity);
-                var product = _context.Products.FirstOrDefault(p => p.Id == g.Key.Id);
+                var product = productDict.GetValueOrDefault(g.Key.Id);
                 var currentStock = product?.StockQuantity ?? 0;
                 var initialStock = currentStock - incoming + outgoing;
 
@@ -163,12 +177,26 @@ public class ReportService : IReportService
             .Where(o => o.CreatedAt >= startDate && o.Type == OrderType.Outgoing)
             .ToListAsync();
 
+        // Get all unique product IDs from the orders
+        var productIds = orders
+            .SelectMany(o => o.Items)
+            .Select(i => i.ProductId)
+            .Distinct()
+            .ToList();
+
+        // Load all relevant products once
+        var products = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+        
+        var productDict = products.ToDictionary(p => p.Id);
+
         var productDemands = orders
             .SelectMany(o => o.Items)
             .GroupBy(i => new { i.Product.Id, i.Product.Name, i.Product.SKU })
             .Select(g =>
             {
-                var product = _context.Products.FirstOrDefault(p => p.Id == g.Key.Id);
+                var product = productDict.GetValueOrDefault(g.Key.Id);
                 var totalDemand = g.Sum(i => i.Quantity);
                 var avgDailyDemand = (decimal)totalDemand / lookbackDays;
                 var currentStock = product?.StockQuantity ?? 0;
