@@ -53,131 +53,152 @@
         .animate-slideIn {
             animation: slideIn 0.3s ease-out;
         }
+        
+        /* Focus visible for accessibility */
+        .nav-link:focus-visible {
+            outline: 2px solid white;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside class="w-64 bg-gradient-to-b from-primary-800 to-primary-900 text-white fixed h-full shadow-xl">
+        <aside class="w-56 lg:w-64 bg-gradient-to-b from-primary-800 to-primary-900 text-white fixed h-full shadow-xl flex flex-col" role="navigation" aria-label="Main navigation">
             <!-- Logo -->
-            <div class="p-6 border-b border-primary-700/50">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-4 lg:p-5 border-b border-primary-700/50 flex-shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
                     </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-tight">StatStock</h1>
-                        <p class="text-primary-300 text-xs">Inventory Management</p>
+                    <div class="min-w-0">
+                        <h1 class="text-lg font-bold tracking-tight truncate">StatStock</h1>
+                        <p class="text-primary-300 text-xs truncate">Inventory Management</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Navigation -->
-            <nav class="mt-6 px-3">
-                <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-3 mb-3">Main Menu</p>
+            <!-- Navigation - Flex grow to take available space -->
+            <nav class="flex-1 px-2 lg:px-3 py-3" aria-label="Main menu">
+                <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-2 mb-2">Menu</p>
                 
                 <a href="/Manager/Dashboard" 
-                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")"
+                   aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "page" : null)">
+                    <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
-                    <span class="font-medium">Dashboard</span>
+                    <span class="font-medium text-sm">Dashboard</span>
                 </a>
 
                 <a href="/Manager/Products" 
-                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")"
+                   aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "page" : null)">
+                    <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
-                    <span class="font-medium">Products</span>
+                    <span class="font-medium text-sm">Products</span>
                 </a>
 
                 <a href="/Manager/Orders" 
-                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")"
+                   aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "page" : null)">
+                    <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
-                    <span class="font-medium">Orders</span>
+                    <span class="font-medium text-sm">Orders</span>
                 </a>
 
                 <a href="/Manager/Suppliers" 
-                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Suppliers" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Suppliers" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")"
+                   aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Suppliers" ? "page" : null)">
+                    <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                     </svg>
-                    <span class="font-medium">Suppliers</span>
+                    <span class="font-medium text-sm">Suppliers</span>
                 </a>
 
                 <a href="/Manager/Categories" 
-                   class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")"
+                   aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "page" : null)">
+                    <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                     </svg>
-                    <span class="font-medium">Categories</span>
+                    <span class="font-medium text-sm">Categories</span>
                 </a>
 
-                <div class="mt-8">
-                    <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-3 mb-3">Quick Actions</p>
-                    <a href="/Manager/Orders?status=Pending" 
-                       class="flex items-center px-4 py-3 mb-1 rounded-lg text-primary-200 hover:bg-white/5 hover:text-white transition-all duration-200">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="font-medium">Pending Orders</span>
-                    </a>
-                </div>
+                <a href="/Manager/Reports" 
+                   class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")"
+                   aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "page" : null)">
+                    <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span class="font-medium text-sm">Reports</span>
+                </a>
+
+                <!-- Divider -->
+                <div class="border-t border-primary-700/50 my-3"></div>
+                
+                <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-2 mb-2">Quick Actions</p>
+                <a href="/Manager/Orders?status=Pending" 
+                   class="nav-link flex items-center px-3 py-2.5 rounded-lg text-primary-200 hover:bg-white/5 hover:text-white transition-all duration-200">
+                    <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium text-sm">Pending Orders</span>
+                </a>
             </nav>
 
-            <!-- User section at bottom -->
-            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-primary-700/50">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
+            <!-- User section at bottom - Fixed at bottom -->
+            <div class="flex-shrink-0 p-3 border-t border-primary-700/50">
+                <div class="flex items-center space-x-2">
+                    <div class="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
                         <span class="text-sm font-semibold">M</span>
                     </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium">Manager</p>
-                        <p class="text-xs text-primary-300">manager@statstock.com</p>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-medium truncate">Manager</p>
+                        <p class="text-xs text-primary-300 truncate">manager@statstock.com</p>
                     </div>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 ml-64">
+        <div class="flex-1 ml-56 lg:ml-64">
             <!-- Top Bar -->
             <header class="bg-white shadow-sm sticky top-0 z-10">
-                <div class="px-8 py-4 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-bold text-slate-800">@ViewData["Title"]</h2>
+                <div class="px-4 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="min-w-0">
+                        <h2 class="text-xl lg:text-2xl font-bold text-slate-800 truncate">@ViewData["Title"]</h2>
                         <p class="text-sm text-slate-500">Welcome back! Here's what's happening today.</p>
                     </div>
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-4 flex-shrink-0">
                         <!-- Notifications -->
-                        <button class="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button class="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-500" aria-label="View notifications">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                             </svg>
-                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-label="New notifications"></span>
                         </button>
                         <!-- Date -->
-                        <span class="text-sm text-slate-500">@DateTime.Now.ToString("dddd, MMMM dd")</span>
+                        <span class="text-xs sm:text-sm text-slate-500 hidden sm:inline">@DateTime.Now.ToString("dddd, MMMM dd")</span>
                     </div>
                 </div>
             </header>
 
             <!-- Page Content -->
-            <main class="p-8">
+            <main class="p-4 lg:p-8" role="main">
                 @RenderBody()
             </main>
 
             <!-- Notification Toast -->
             @if (TempData["SuccessMessage"] != null)
             {
-                <div id="successToast" class="fixed top-4 right-4 z-50 max-w-md">
+                <div id="successToast" class="fixed top-4 right-4 z-50 max-w-md" role="alert" aria-live="polite">
                     <div class="bg-white rounded-xl shadow-2xl border-l-4 border-emerald-500 p-4 flex items-start space-x-3 animate-slideIn">
-                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
                             <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
@@ -186,8 +207,8 @@
                             <h4 class="text-sm font-bold text-slate-900 mb-1">Success</h4>
                             <p class="text-sm text-slate-600">@TempData["SuccessMessage"]</p>
                         </div>
-                        <button onclick="document.getElementById('successToast').remove()" class="text-slate-400 hover:text-slate-600">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button onclick="document.getElementById('successToast').remove()" class="text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 rounded" aria-label="Dismiss notification">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
@@ -270,7 +291,7 @@
             }
 
             <!-- Footer -->
-            <footer class="px-8 py-4 text-center text-sm text-slate-400 border-t bg-white">
+            <footer class="px-4 lg:px-8 py-4 text-center text-sm text-slate-400 border-t bg-white" role="contentinfo">
                 &copy; 2026 StatStock - Inventory Management Platform
             </footer>
         </div>

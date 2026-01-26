@@ -1,0 +1,142 @@
+@{
+    ViewData["Title"] = "Reorder Suggestions";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Reorder Suggestions</h1>
+        <a href="@Url.Action("Index")" class="text-blue-500 hover:text-blue-700">← Back to Reports</a>
+    </div>
+
+    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    These are automated reorder suggestions based on current stock levels and reorder points. Review and adjust quantities as needed.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div id="loadingIndicator" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p class="mt-2 text-gray-600">Loading suggestions...</p>
+        </div>
+        
+        <div id="reportContent" class="hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reorder Level</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recommended Qty</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Est. Cost</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody" class="bg-white divide-y divide-gray-200">
+                </tbody>
+                <tfoot id="reportTableFooter" class="bg-gray-50 font-bold">
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="emptyState" class="hidden text-center py-8 text-gray-500">
+            <svg class="w-16 h-16 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-lg">Excellent! No reorder suggestions at this time.</p>
+            <p class="text-sm text-gray-400 mt-2">All products are at healthy stock levels.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function loadReport() {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('reportContent').classList.add('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+
+            try {
+                const response = await fetch('/Manager/Reports/GetReorderSuggestionsData');
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    renderTable(result.data);
+                    document.getElementById('reportContent').classList.remove('hidden');
+                } else {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading suggestions:', error);
+                alert('Failed to load suggestions. Please try again.');
+            } finally {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('reportTableBody');
+            const tfoot = document.getElementById('reportTableFooter');
+            tbody.innerHTML = '';
+
+            let totalCost = 0, totalQty = 0;
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                
+                let priorityBadge = '';
+                if (item.priority === 'Critical') {
+                    priorityBadge = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Critical</span>';
+                } else if (item.priority === 'High') {
+                    priorityBadge = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">High</span>';
+                } else {
+                    priorityBadge = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Medium</span>';
+                }
+
+                const stockColor = item.currentStock === 0 ? 'text-red-700 font-bold' : 'text-gray-900';
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">${priorityBadge}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${item.productName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.sku}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${stockColor}">${item.currentStock}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.reorderLevel}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-semibold">${item.recommendedQuantity}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${item.estimatedCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.supplierName || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">${item.reason}</td>
+                `;
+                tbody.appendChild(row);
+
+                totalQty += item.recommendedQuantity;
+                totalCost += item.estimatedCost;
+            });
+
+            tfoot.innerHTML = `
+                <tr>
+                    <td class="px-6 py-4 text-sm text-gray-900" colspan="5">TOTALS</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${totalQty}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${totalCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4" colspan="2"></td>
+                </tr>
+            `;
+        }
+
+        // Load report on page load
+        document.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+}

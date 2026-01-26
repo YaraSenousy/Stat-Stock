@@ -27,9 +27,118 @@ A unified web platform serving two distinct user groups for inventory management
 | **Caching** | IMemoryCache (Redis-ready) |
 | **Logging** | Serilog (file + console) |
 | **Testing** | xUnit + FluentAssertions + Moq |
-| **Notifications** | Email + In-app |
+| **Notifications** | In-app |
 | **Language** | English only |
 | **Deployment** | Local (development) |
+
+---
+
+## Analytics & Forecasting Algorithms
+
+### Demand Forecast Algorithm
+
+The **Demand Forecast** feature uses historical order data to predict future inventory needs and prevent stockouts.
+
+**How It Works:**
+
+1. **Data Collection (90-Day Lookback)**
+   - Analyzes the last 90 days of **outgoing orders** (customer orders, not incoming stock)
+   - Groups data by product to calculate consumption patterns
+   - Only considers products with actual demand history
+
+2. **Average Daily Demand Calculation**
+   ```
+   Average Daily Demand = Total Quantity Ordered / 90 days
+   ```
+   Example: If 44 units were ordered over 90 days → 0.49 units/day
+
+3. **Days Until Stockout Prediction**
+   ```
+   Days Until Stockout = Current Stock / Average Daily Demand
+   ```
+   Example: 10 units in stock ÷ 0.49 units/day = ~20 days until stockout
+
+4. **Recommended Order Quantity (with Safety Buffer)**
+   ```
+   Recommended Qty = (Avg Daily Demand × Days to Forecast × 1.2)
+   ```
+   - Default forecast period: 30 days
+   - 20% safety buffer to account for demand spikes
+   - Example: 0.49 × 30 × 1.2 = 17 units recommended
+
+5. **Suggested Order Date**
+   ```
+   Order Date = Current Date + (Days Until Stockout - 7)
+   ```
+   - Orders 7 days before predicted stockout
+   - Provides lead time for supplier fulfillment
+
+6. **Confidence Scoring**
+   - **80% confidence** → 5+ data points (orders) in the last 90 days
+   - **50% confidence** → Fewer than 5 data points
+   - More historical data = more reliable forecast
+
+**Use Case:** Proactive inventory management to prevent stockouts without over-ordering.
+
+---
+
+### Reorder Suggestions Algorithm
+
+The **Reorder Suggestions** feature identifies products that need immediate attention based on reorder levels.
+
+**How It Works:**
+
+1. **Low Stock Detection**
+   ```
+   Trigger: Current Stock ≤ Reorder Level
+   ```
+   - Automatically identifies products below their configured reorder threshold
+   - Reorder levels are set per product (e.g., Monitor: 15 units)
+
+2. **Stock Deficit Calculation**
+   ```
+   Deficit = Reorder Level - Current Stock
+   ```
+   Example: Reorder level of 15 - current stock of 10 = 5 unit deficit
+
+3. **Recommended Order Quantity**
+   ```
+   Recommended Qty = MAX(Deficit × 2, Reorder Level)
+   ```
+   - Orders **twice the deficit** to build buffer stock
+   - OR orders up to reorder level (whichever is higher)
+   - Example: MAX(5 × 2, 15) = 15 units recommended
+
+4. **Priority Classification**
+   - **Critical** → Stock = 0 (out of stock, immediate action needed)
+   - **High** → Stock < 50% of reorder level (running very low)
+   - **Medium** → Stock ≤ reorder level but > 50% (needs attention soon)
+
+5. **Cost Estimation**
+   ```
+   Estimated Cost = Recommended Qty × Current Unit Price
+   ```
+   Example: 15 units × $199.99 = $2,999.85
+
+6. **Supplier Recommendation**
+   - Analyzes recent order history (last 100 orders)
+   - Suggests the most recently used supplier for that product
+   - Helps maintain supplier relationships and pricing
+
+**Use Case:** Reactive inventory management for immediate reordering needs.
+
+---
+
+### Key Differences
+
+| Feature | Demand Forecast | Reorder Suggestions |
+|---------|-----------------|---------------------|
+| **Trigger** | Proactive (scheduled analysis) | Reactive (stock level threshold) |
+| **Data Source** | 90 days of outgoing orders | Current stock vs reorder level |
+| **Focus** | Future planning (30+ days) | Immediate needs (now) |
+| **Algorithm** | Time-series based | Threshold-based |
+| **Confidence** | Variable (50-80%) | Definitive (binary: low or not) |
+| **Best For** | Strategic planning | Tactical replenishment |
 
 ---
 
@@ -232,12 +341,12 @@ Stat-Stock/
 
 ## Recommended Implementation Plan (Approach 1 + Quick Wins)
 
-### Phase 1: Foundation (Day 1)
-- [ ] Create solution with Clean Architecture structure
-- [ ] Set up Domain entities (Product, Supplier, Order, User)
-- [ ] Configure EF Core with SQL Server
-- [ ] Create database migrations
-- [ ] Seed sample data
+### Phase 1: Foundation (Day 1) ✅ COMPLETED
+- [x] ~~Create solution with Clean Architecture structure~~
+- [x] ~~Set up Domain entities (Product, Supplier, Order, User)~~
+- [x] ~~Configure EF Core with SQL Server~~
+- [x] ~~Create database migrations~~
+- [x] ~~Seed sample data~~
 
 ### Phase 2: Manager Dashboard (Day 1-2) ✅ COMPLETED (except SignalR)
 - [x] ~~Create Manager area with layout~~
@@ -270,30 +379,29 @@ Stat-Stock/
 - [x] ~~Category management~~
 - [x] ~~Bulk import/export products (CSV/Excel)~~
 
-### Phase 6: B2B API
-- [ ] Create API controllers for orders
-- [ ] Create API controllers for products
-- [ ] Configure JWT authentication
-- [ ] Add Swagger documentation
-- [ ] Implement webhook notifications
-- [ ] API rate limiting
-- [ ] API key management
+### Phase 6: B2B API ✅ COMPLETED
+- [x] ~~Create API controllers for orders~~
+- [x] ~~Create API controllers for products~~
+- [x] ~~Configure JWT authentication~~
+- [x] ~~Add Swagger documentation~~
+- [x] ~~Implement webhook notifications~~
+- [x] ~~API rate limiting~~
+- [x] ~~API key management~~
 
-### Phase 7: Reports & Analytics (Manager)
-- [ ] Reports & exports (PDF/Excel)
-- [ ] Predictive analytics (demand forecasting)
-- [ ] Automatic reorder suggestions
-- [ ] Low stock alerts configuration
-- [ ] Stock movement history report
-- [ ] Inventory valuation report
-- [ ] Sales trends report
+### Phase 7: Reports & Analytics (Manager) ✅ COMPLETED
+- [x] ~~Reports & exports (PDF/Excel)~~
+- [x] ~~Predictive analytics (demand forecasting)~~
+- [x] ~~Automatic reorder suggestions~~
+- [x] ~~Low stock alerts configuration~~
+- [x] ~~Stock movement history report~~
+- [x] ~~Inventory valuation report~~
+- [x] ~~Sales trends report~~
 
 ### Phase 8: Advanced Features
 - [ ] User authentication system (without Identity)
 - [ ] User management (Create, Edit, Delete users)
 - [ ] Role-based access control
 - [ ] Audit trail with user tracking
-- [ ] Email notifications for approvals
 - [ ] In-app notification system
 - [ ] Barcode/QR code scanning for Terminal
 - [ ] Batch entry (multiple products in one shipment)
