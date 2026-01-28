@@ -1,70 +1,53 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Domain.Entities;
 using StatStock.Domain.Enums;
-using StatStock.Infrastructure.Identity;
+using StatStock.Infrastructure.Services;
 
 namespace StatStock.Infrastructure.Data.Seeders;
 
 public static class DataSeeder
 {
-    public static async Task SeedAsync(ApplicationDbContext context, UserManager<ApplicationIdentityUser>? userManager = null)
+    public static async Task SeedAsync(ApplicationDbContext context, ICustomUserService? userService = null)
     {
-        // Seed Users first (if UserManager is provided)
-        if (userManager != null)
+        // Seed Users first (if userService is provided)
+        if (userService != null)
         {
-            await SeedUsersAsync(userManager);
+            await SeedUsersAsync(context, userService);
         }
         
-        // Seed Products
+        // Seed Products and Suppliers BEFORE Orders (they must exist first)
         await SeedProductsAsync(context);
-        
-        // Seed Suppliers
         await SeedSuppliersAsync(context);
         
-        // Note: Orders seeding disabled because it requires users
-        // Uncomment when user management is implemented
+        // Save products and suppliers to database so they have IDs
+        await context.SaveChangesAsync();
+        
+        // Now seed Orders (which reference products and suppliers)
         await SeedOrdersAsync(context);
         
+        // Save orders
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedUsersAsync(UserManager<ApplicationIdentityUser> userManager)
+    private static async Task SeedUsersAsync(ApplicationDbContext context, ICustomUserService userService)
     {
         // Check if users already exist
-        if (await userManager.Users.AnyAsync())
+        if (await context.ApplicationUsers.AnyAsync())
             return;
 
         var users = new[]
         {
-            new { Email = "admin@statstock.com", FirstName = "Admin", LastName = "User", Role = UserRole.Admin, Area = "All", Password = "Admin123!" },
-            new { Email = "manager@statstock.com", FirstName = "Manager", LastName = "User", Role = UserRole.Manager, Area = "Warehouse A", Password = "Manager123!" },
-            new { Email = "staff@statstock.com", FirstName = "Floor", LastName = "Staff", Role = UserRole.FloorStaff, Area = "Warehouse A", Password = "Staff123!" },
-            new { Email = "client@statstock.com", FirstName = "B2B", LastName = "Client", Role = UserRole.B2BClient, Area = "External", Password = "Client123!" },
+            new { Email = "admin@statstock.com", FullName = "Admin User", Role = UserRole.Admin, Password = "Admin123!" },
+            new { Email = "manager@statstock.com", FullName = "Manager User", Role = UserRole.Manager, Password = "Manager123!" },
+            new { Email = "staff@statstock.com", FullName = "Floor Staff", Role = UserRole.FloorStaff, Password = "Staff123!" },
+            new { Email = "client@statstock.com", FullName = "B2B Client", Role = UserRole.B2BClient, Password = "Client123!" },
         };
 
         foreach (var userData in users)
         {
-            var user = new ApplicationIdentityUser
-            {
-                UserName = userData.Email,
-                Email = userData.Email,
-                FirstName = userData.FirstName,
-                LastName = userData.LastName,
-                Role = userData.Role,
-                Area = userData.Area,
-                EmailConfirmed = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var result = await userManager.CreateAsync(user, userData.Password);
-            if (result.Succeeded)
-            {
-                // Optionally add to roles here if using role-based authorization
-            }
+            await userService.CreateUserAsync(userData.Email, userData.FullName, userData.Password, userData.Role.ToString());
         }
     }
-
 
     private static async Task SeedProductsAsync(ApplicationDbContext context)
     {
@@ -149,16 +132,8 @@ public static class DataSeeder
             .Include(o => o.Items)  // Include items for deletion
             .ToListAsync();
 
-        // If we have all test orders with correct status, skip seeding
-        var allCorrectStatus = existingTestOrders
-            .Where(o => o.OrderNumber == "ORD-20260118-003" || o.OrderNumber == "ORD-20260115-004")
-            .All(o => (o.OrderNumber == "ORD-20260118-003" && o.Status == OrderStatus.Approved) ||
-                      (o.OrderNumber == "ORD-20260115-004" && o.Status == OrderStatus.Delivered))
-            && existingTestOrders
-            .Where(o => o.OrderNumber == "ORD-20260125-001" || o.OrderNumber == "ORD-20260120-002")
-            .All(o => o.Status == OrderStatus.Pending);
-        
-        if (existingTestOrders.Count == testOrderNumbers.Length && allCorrectStatus)
+        // If we have all test orders, skip seeding
+        if (existingTestOrders.Count == testOrderNumbers.Length)
             return;
 
         // Remove any existing test orders to allow fresh seeding
@@ -174,20 +149,27 @@ public static class DataSeeder
             await context.SaveChangesAsync();
         }
 
+        // Get actual product and supplier IDs from database
+        var products = await context.Products.ToListAsync();
+        var suppliers = await context.Suppliers.ToListAsync();
+        
+        if (!products.Any() || !suppliers.Any())
+            return; // Can't seed orders without products and suppliers
+
         var orders = new List<Order>
         {
             new Order
             {
                 OrderNumber = "ORD-20260125-001",
                 Type = OrderType.Incoming,
-                Status = OrderStatus.Pending,  // ← Key: Not approved
+                Status = OrderStatus.Pending,
                 CreatedAt = DateTime.Now.AddDays(-5),
                 ApprovedAt = null,
                 Items = new List<OrderItem>
                 {
-                    new OrderItem { ProductId = 1, Quantity = 15, UnitPrice = 60m }
+                    new OrderItem { ProductId = products[0].Id, Quantity = 15, UnitPrice = 60m }
                 },
-                SupplierId = 4,  // Changed from 1 (TechWholesale) to 4 (FurniturePro) - not a trusted supplier
+                SupplierId = suppliers.Last().Id,  // FurniturePro - not a trusted supplier
                 UserId = "1"
             },
 
@@ -200,9 +182,9 @@ public static class DataSeeder
                 ApprovedAt = null,
                 Items = new List<OrderItem>
                 {
-                    new OrderItem { ProductId = 3, Quantity = 50, UnitPrice = 20.00m }  // Reduced from 400 to 20 for total $1000 > $500, not auto-approved by Rule 1
+                    new OrderItem { ProductId = products[2].Id, Quantity = 50, UnitPrice = 20.00m }
                 },
-                SupplierId = 3,  // Changed to Global Parts Ltd. - not a trusted supplier
+                SupplierId = suppliers[2].Id,  // Global Parts Ltd. - not a trusted supplier
                 UserId = "1"
             },
 
@@ -216,9 +198,9 @@ public static class DataSeeder
                 ApprovedAt = DateTime.Now.AddDays(-14),
                 Items = new List<OrderItem>
                 {
-                    new OrderItem { ProductId = 2, Quantity = 5, UnitPrice = 199.99m }
+                    new OrderItem { ProductId = products[1].Id, Quantity = 5, UnitPrice = 199.99m }
                 },
-                SupplierId = 1,
+                SupplierId = suppliers[0].Id,
                 UserId = "1"
             },
 
@@ -232,9 +214,9 @@ public static class DataSeeder
                 ApprovedAt = DateTime.Now.AddDays(-19),
                 Items = new List<OrderItem>
                 {
-                    new OrderItem { ProductId = 4, Quantity = 3, UnitPrice = 450.00m }
+                    new OrderItem { ProductId = products[3].Id, Quantity = 3, UnitPrice = 450.00m }
                 },
-                SupplierId = 3,
+                SupplierId = suppliers[2].Id,
                 UserId = "1"
             },
         };

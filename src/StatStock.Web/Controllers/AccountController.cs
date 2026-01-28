@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StatStock.Application.Interfaces;
 using StatStock.Domain.Enums;
-using StatStock.Infrastructure.Identity;
+using StatStock.Infrastructure.Services;
 using StatStock.Web.Models;
 using System.Security.Claims;
 
@@ -13,19 +12,16 @@ namespace StatStock.Web.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly UserManager<ApplicationIdentityUser> _userManager;
-    private readonly SignInManager<ApplicationIdentityUser> _signInManager;
+    private readonly ICustomUserService _userService;
     private readonly IAuditService _auditService;
     private readonly ILogger<AccountController> _logger;
 
     public AccountController(
-        UserManager<ApplicationIdentityUser> userManager,
-        SignInManager<ApplicationIdentityUser> signInManager,
+        ICustomUserService userService,
         IAuditService auditService,
         ILogger<AccountController> logger)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
+        _userService = userService;
         _auditService = auditService;
         _logger = logger;
     }
@@ -50,46 +46,57 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // Find user by email
-        var user = await _userManager.FindByEmailAsync(model.Email);
+        // Authenticate user
+        var user = await _userService.AuthenticateAsync(model.Email, model.Password);
         if (user == null)
         {
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return View(model);
         }
 
-        // Sign in with password (claims are added automatically via ApplicationUserClaimsPrincipalFactory)
-        var result = await _signInManager.PasswordSignInAsync(
-            user.UserName ?? model.Email, 
-            model.Password, 
-            model.RememberMe, 
-            lockoutOnFailure: false);
-
-        if (result.Succeeded)
+        // Create claims for the user
+        var claims = new List<Claim>
         {
-            _logger.LogInformation("User {Email} logged in with role {Role}", model.Email, user.Role);
-            
-            // Log login event
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-            await _auditService.LogAsync(user.Id, user.Email!, "Login", "Authentication", user.Id, 
-                null, $"Role: {user.Role}", ipAddress);
-            
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-            
-            // Redirect based on role
-            return user.Role switch
-            {
-                UserRole.Admin or UserRole.Manager => RedirectToAction("Index", "Dashboard", new { area = "Manager" }),
-                UserRole.FloorStaff => RedirectToAction("Index", "Terminal", new { area = "Terminal" }),
-                _ => RedirectToAction("Index", "Home")
-            };
-        }
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.GivenName, user.FirstName),
+            new Claim(ClaimTypes.Surname, user.LastName),
+            new Claim(ClaimTypes.Role, user.Role.ToString())
+        };
 
-        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-        return View(model);
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = model.RememberMe,
+            ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddHours(24)
+        };
+
+        // Sign in the user
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            authProperties);
+
+        _logger.LogInformation("User {Email} logged in with role {Role}", model.Email, user.Role);
+        
+        // Log login event
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        await _auditService.LogAsync(user.Id, user.Email!, "Login", "Authentication", user.Id, 
+            null, $"Role: {user.Role}", ipAddress);
+        
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+        
+        // Redirect based on role
+        return user.Role switch
+        {
+            UserRole.Admin or UserRole.Manager => RedirectToAction("Index", "Dashboard", new { area = "Manager" }),
+            UserRole.FloorStaff or UserRole.B2BClient => RedirectToAction("Index", "Terminal", new { area = "Terminal" }),
+            _ => RedirectToAction("Index", "Home")
+        };
     }
 
     [HttpGet]
@@ -109,39 +116,43 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var user = new ApplicationIdentityUser
-        {
-            UserName = model.Email,
-            Email = model.Email,
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            Role = model.Role,
-            Area = model.Area,
-            CreatedAt = DateTime.UtcNow
-        };
+        var fullName = $"{model.FirstName} {model.LastName}";
+        var result = await _userService.CreateUserAsync(model.Email, fullName, model.Password, model.Role.ToString());
 
-        var result = await _userManager.CreateAsync(user, model.Password);
-
-        if (result.Succeeded)
+        if (result.success)
         {
             _logger.LogInformation("User {Email} created successfully", model.Email);
             
-            // Sign in the user after successful registration
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            
-            return user.Role switch
+            // Authenticate and sign in the newly created user
+            var user = await _userService.AuthenticateAsync(model.Email, model.Password);
+            if (user != null)
             {
-                UserRole.Admin or UserRole.Manager => RedirectToAction("Index", "Dashboard", new { area = "Manager" }),
-                UserRole.FloorStaff => RedirectToAction("Index", "Terminal", new { area = "Terminal" }),
-                _ => RedirectToAction("Index", "Home")
-            };
+                // Create claims for the user
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.GivenName, user.FirstName),
+                    new Claim(ClaimTypes.Surname, user.LastName),
+                    new Claim(ClaimTypes.Role, user.Role.ToString())
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity));
+                
+                return user.Role switch
+                {
+                    UserRole.Admin or UserRole.Manager => RedirectToAction("Index", "Dashboard", new { area = "Manager" }),
+                    UserRole.FloorStaff or UserRole.B2BClient => RedirectToAction("Index", "Terminal", new { area = "Terminal" }),
+                    _ => RedirectToAction("Index", "Home")
+                };
+            }
         }
 
-        foreach (var error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-        }
-
+        ModelState.AddModelError(string.Empty, result.message ?? "Failed to create user.");
         return View(model);
     }
 
@@ -149,10 +160,10 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
-        var userId = _userManager.GetUserId(User);
-        var userEmail = _userManager.GetUserName(User) ?? "Unknown";
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? "Unknown";
         
-        await _signInManager.SignOutAsync();
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         
         // Log logout event
         if (!string.IsNullOrEmpty(userId))

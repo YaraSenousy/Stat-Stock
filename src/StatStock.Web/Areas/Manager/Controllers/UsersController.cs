@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using StatStock.Domain.Enums;
-using StatStock.Infrastructure.Identity;
+using StatStock.Infrastructure.Services;
 using StatStock.Web.Areas.Manager.Models;
+using System.Security.Claims;
 
 namespace StatStock.Web.Areas.Manager.Controllers;
 
@@ -12,28 +11,29 @@ namespace StatStock.Web.Areas.Manager.Controllers;
 [Authorize(Roles = "Admin")]
 public class UsersController : Controller
 {
-    private readonly UserManager<ApplicationIdentityUser> _userManager;
+    private readonly ICustomUserService _userService;
     private readonly ILogger<UsersController> _logger;
 
     public UsersController(
-        UserManager<ApplicationIdentityUser> userManager,
+        ICustomUserService userService,
         ILogger<UsersController> logger)
     {
-        _userManager = userManager;
+        _userService = userService;
         _logger = logger;
     }
 
     // GET: Manager/Users
     public async Task<IActionResult> Index(string? searchTerm = null, UserRole? role = null)
     {
-        var users = _userManager.Users.AsQueryable();
+        var allUsers = await _userService.GetAllUsersAsync();
+        var users = allUsers.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             users = users.Where(u => 
-                u.Email!.Contains(searchTerm) || 
-                u.FirstName.Contains(searchTerm) || 
-                u.LastName.Contains(searchTerm));
+                u.Email!.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                u.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                u.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
         if (role.HasValue)
@@ -41,7 +41,7 @@ public class UsersController : Controller
             users = users.Where(u => u.Role == role.Value);
         }
 
-        var model = await users
+        var model = users
             .OrderBy(u => u.Email)
             .Select(u => new UserViewModel
             {
@@ -53,7 +53,7 @@ public class UsersController : Controller
                 Area = u.Area,
                 CreatedAt = u.CreatedAt
             })
-            .ToListAsync();
+            .ToList();
 
         ViewData["SearchTerm"] = searchTerm;
         ViewData["RoleFilter"] = role;
@@ -77,39 +77,24 @@ public class UsersController : Controller
             return View(model);
         }
 
-        var user = new ApplicationIdentityUser
-        {
-            UserName = model.Email,
-            Email = model.Email,
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            Role = model.Role,
-            Area = model.Area,
-            EmailConfirmed = true,
-            CreatedAt = DateTime.UtcNow
-        };
+        var fullName = $"{model.FirstName} {model.LastName}";
+        var result = await _userService.CreateUserAsync(model.Email, fullName, model.Password, model.Role.ToString());
 
-        var result = await _userManager.CreateAsync(user, model.Password);
-
-        if (result.Succeeded)
+        if (result.success)
         {
             _logger.LogInformation("Admin created user {Email}", model.Email);
             TempData["SuccessMessage"] = $"User '{model.Email}' created successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-        foreach (var error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-        }
-
+        ModelState.AddModelError(string.Empty, result.message ?? "Failed to create user.");
         return View(model);
     }
 
     // GET: Manager/Users/Edit/5
     public async Task<IActionResult> Edit(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
         {
             return NotFound();
@@ -143,7 +128,7 @@ public class UsersController : Controller
             return View(model);
         }
 
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
         {
             return NotFound();
@@ -154,27 +139,23 @@ public class UsersController : Controller
         user.Role = model.Role;
         user.Area = model.Area;
 
-        var result = await _userManager.UpdateAsync(user);
+        var result = await _userService.UpdateUserAsync(user);
 
-        if (result.Succeeded)
+        if (result.success)
         {
             _logger.LogInformation("Admin updated user {Email}", user.Email);
             TempData["SuccessMessage"] = $"User '{user.Email}' updated successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-        foreach (var error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-        }
-
+        ModelState.AddModelError(string.Empty, result.message ?? "Failed to update user.");
         return View(model);
     }
 
     // GET: Manager/Users/ChangePassword/5
     public async Task<IActionResult> ChangePassword(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
         {
             return NotFound();
@@ -199,43 +180,32 @@ public class UsersController : Controller
             return View(model);
         }
 
-        var user = await _userManager.FindByIdAsync(model.UserId);
+        var user = await _userService.GetUserByIdAsync(model.UserId);
         if (user == null)
         {
             return NotFound();
         }
 
-        // Remove old password and set new one
-        var removePasswordResult = await _userManager.RemovePasswordAsync(user);
-        if (!removePasswordResult.Succeeded)
-        {
-            foreach (var error in removePasswordResult.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-            return View(model);
-        }
+        // For admin password change, we bypass current password requirement
+        // by setting the new password directly
+        user.PasswordHash = HashPassword(model.NewPassword);
+        var result = await _userService.UpdateUserAsync(user);
 
-        var addPasswordResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
-        if (addPasswordResult.Succeeded)
+        if (result.success)
         {
             _logger.LogInformation("Admin changed password for user {Email}", user.Email);
             TempData["SuccessMessage"] = $"Password for '{user.Email}' changed successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-        foreach (var error in addPasswordResult.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-        }
-
+        ModelState.AddModelError(string.Empty, result.message ?? "Failed to change password.");
         return View(model);
     }
 
     // GET: Manager/Users/Delete/5
     public async Task<IActionResult> Delete(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
         {
             return NotFound();
@@ -260,34 +230,53 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
         {
             return NotFound();
         }
 
         // Prevent deleting yourself
-        var currentUserId = _userManager.GetUserId(User);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (user.Id == currentUserId)
         {
             TempData["ErrorMessage"] = "You cannot delete your own account.";
             return RedirectToAction(nameof(Index));
         }
 
-        var result = await _userManager.DeleteAsync(user);
+        var result = await _userService.DeleteUserAsync(user.Id);
 
-        if (result.Succeeded)
+        if (result.success)
         {
             _logger.LogInformation("Admin deleted user {Email}", user.Email);
             TempData["SuccessMessage"] = $"User '{user.Email}' deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-        foreach (var error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-        }
-
+        ModelState.AddModelError(string.Empty, result.message ?? "Failed to delete user.");
         return RedirectToAction(nameof(Delete), new { id });
+    }
+
+    // Helper method to hash password (duplicated from CustomUserService for admin password changes)
+    private string HashPassword(string password)
+    {
+        const int SaltSize = 16;
+        const int HashSize = 20;
+        const int Iterations = 10000;
+
+        byte[] salt = System.Security.Cryptography.RandomNumberGenerator.GetBytes(SaltSize);
+
+        byte[] hash = System.Security.Cryptography.Rfc2898DeriveBytes.Pbkdf2(
+            password, 
+            salt, 
+            Iterations, 
+            System.Security.Cryptography.HashAlgorithmName.SHA256, 
+            HashSize);
+
+        byte[] hashWithSalt = new byte[SaltSize + HashSize];
+        Array.Copy(salt, 0, hashWithSalt, 0, SaltSize);
+        Array.Copy(hash, 0, hashWithSalt, SaltSize, HashSize);
+
+        return Convert.ToBase64String(hashWithSalt);
     }
 }

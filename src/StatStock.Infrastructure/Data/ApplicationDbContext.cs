@@ -1,18 +1,16 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Domain.Entities;
-using StatStock.Infrastructure.Identity;
 
 namespace StatStock.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationIdentityUser>
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
+    public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Order> Orders { get; set; }
@@ -22,6 +20,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationIdentityUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // ApplicationUser configuration
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.UserName).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasMaxLength(500);
+            entity.Property(e => e.Role).HasConversion<string>();
+            entity.Property(e => e.Area).HasMaxLength(100);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.UserName).IsUnique();
+        });
 
         // Product configuration
         modelBuilder.Entity<Product>(entity =>
@@ -75,15 +88,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationIdentityUser>
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // ApplicationIdentityUser configuration
-        modelBuilder.Entity<ApplicationIdentityUser>(entity =>
-        {
-            entity.Property(e => e.FirstName).HasMaxLength(100);
-            entity.Property(e => e.LastName).HasMaxLength(100);
-            entity.Property(e => e.Role).HasConversion<string>();
-            entity.Property(e => e.Area).HasMaxLength(100);
         });
 
         // AuditLog configuration

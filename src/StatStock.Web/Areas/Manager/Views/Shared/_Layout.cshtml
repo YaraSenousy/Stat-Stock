@@ -33,11 +33,21 @@
     <!-- SignalR -->
     <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
     <style>
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Custom scrollbar - thinner and better colored for dark theme */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+        
+        /* Hide scrollbar for Chrome, Safari and Opera but keep functionality */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
         
         /* Toast animation */
         @@keyframes slideIn {
@@ -81,7 +91,7 @@
             </div>
 
             <!-- Navigation - Flex grow to take available space -->
-            <nav class="flex-1 px-2 lg:px-3 py-3" aria-label="Main menu">
+            <nav class="flex-1 px-2 lg:px-3 py-3 overflow-y-auto scrollbar-hide" aria-label="Main menu">
                 <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-2 mb-2">Menu</p>
                 
                 <a href="/Manager/Dashboard" 
@@ -138,31 +148,43 @@
                     <span class="font-medium text-sm">Reports</span>
                 </a>
 
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="/Manager/Users" 
+                       class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg transition-all duration-200 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "bg-white/10 text-white shadow-lg" : "text-primary-200 hover:bg-white/5 hover:text-white")"
+                       aria-current="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "page" : null)">
+                        <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span class="font-medium text-sm">Users</span>
+                    </a>
+                }
+
                 <!-- Divider -->
                 <div class="border-t border-primary-700/50 my-3"></div>
                 
                 <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider px-2 mb-2">Quick Actions</p>
                 <a href="/Manager/Orders?status=Pending" 
-                   class="nav-link flex items-center px-3 py-2.5 rounded-lg text-primary-200 hover:bg-white/5 hover:text-white transition-all duration-200">
+                   class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg text-primary-200 hover:bg-white/5 hover:text-white transition-all duration-200">
                     <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <span class="font-medium text-sm">Pending Orders</span>
                 </a>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="/Terminal/Terminal/Index" 
+                       class="nav-link flex items-center px-3 py-2.5 mb-0.5 rounded-lg text-primary-200 hover:bg-white/5 hover:text-white transition-all duration-200">
+                        <svg class="w-5 h-5 mr-2.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        <span class="font-medium text-sm">Terminal</span>
+                    </a>
+                }
             </nav>
 
-            <!-- User section at bottom - Fixed at bottom -->
-            <div class="flex-shrink-0 p-3 border-t border-primary-700/50">
-                <div class="flex items-center space-x-2">
-                    <div class="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                        <span class="text-sm font-semibold">M</span>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium truncate">Manager</p>
-                        <p class="text-xs text-primary-300 truncate">manager@statstock.com</p>
-                    </div>
-                </div>
-            </div>
+            <!-- User section removed from sidebar -->
         </aside>
 
         <!-- Main Content -->
@@ -175,15 +197,23 @@
                         <p class="text-sm text-slate-500">Welcome back! Here's what's happening today.</p>
                     </div>
                     <div class="flex items-center space-x-4 flex-shrink-0">
-                        <!-- Notifications -->
-                        <button class="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-primary-500" aria-label="View notifications">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" aria-label="New notifications"></span>
-                        </button>
-                        <!-- Date -->
-                        <span class="text-xs sm:text-sm text-slate-500 hidden sm:inline">@DateTime.Now.ToString("dddd, MMMM dd")</span>
+                        <!-- User Info -->
+                        <div class="flex items-center space-x-3">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-sm font-medium text-slate-700">@User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value</p>
+                                <p class="text-xs text-slate-500">@User.Identity?.Name</p>
+                            </div>
+                            <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-md">
+                                <span class="text-sm font-semibold">@(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")</span>
+                            </div>
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="inline-block">
+                                <button type="submit" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200" title="Logout">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </header>

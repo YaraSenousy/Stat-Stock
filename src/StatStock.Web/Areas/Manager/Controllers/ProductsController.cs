@@ -388,9 +388,9 @@ public class ProductsController : Controller
                 // Skip header
                 await reader.ReadLineAsync();
 
-                while (!reader.EndOfStream)
+                string? line;
+                while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    var line = await reader.ReadLineAsync();
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
                     try

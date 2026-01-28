@@ -9,7 +9,7 @@ using StatStock.Domain.Enums;
 namespace StatStock.Web.Areas.Terminal.Controllers;
 
 [Area("Terminal")]
-[Authorize(Roles = "Admin,FloorStaff")]
+[Authorize(Roles = "Admin,FloorStaff,B2BClient")]
 public class TerminalController : Controller
 {
     private readonly ApplicationDbContext _context;

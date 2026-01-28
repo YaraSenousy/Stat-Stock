@@ -1,51 +1,122 @@
 @model StatStock.Web.Models.LoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Sign in";
+    Layout = "_AuthLayout";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm mt-5">
-            <div class="card-body p-4">
-                <h2 class="text-center mb-4">Login</h2>
-                <form asp-action="Login" method="post">
-                    <input type="hidden" asp-for="@ViewData["ReturnUrl"]" />
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-                    
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" placeholder="Enter your email" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" placeholder="Enter your password" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="form-check mb-3">
-                        <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label"></label>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
-                    
-                    <div class="text-center">
-                        <a asp-action="Register" class="text-decoration-none">Don't have an account? Register</a>
-                    </div>
-                </form>
+<div>
+    <h3 class="text-xl font-bold text-slate-900 mb-6">Sign in to your account</h3>
+    
+    <form asp-action="Login" method="post" class="space-y-6">
+        <input type="hidden" asp-for="ReturnUrl" />
+        <div asp-validation-summary="ModelOnly" class="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 mb-4"></div>
+
+        <div>
+            <label asp-for="Email" class="block text-sm font-medium text-slate-700">Email address</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                </div>
+                <input asp-for="Email" class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors" placeholder="you@example.com" />
+            </div>
+            <span asp-validation-for="Email" class="mt-1 text-xs text-red-500"></span>
+        </div>
+
+        <div>
+            <label asp-for="Password" class="block text-sm font-medium text-slate-700">Password</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input asp-for="Password" type="password" class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-colors" placeholder="••••••••" />
+            </div>
+            <span asp-validation-for="Password" class="mt-1 text-xs text-red-500"></span>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <input asp-for="RememberMe" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded transition-colors" />
+                <label asp-for="RememberMe" class="ml-2 block text-sm text-slate-900">
+                    Remember me
+                </label>
+            </div>
+        </div>
+
+        <div>
+            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors shadow-lg shadow-primary-500/30">
+                Sign in
+            </button>
+        </div>
+    </form>
+    
+    <div class="mt-6">
+        <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-slate-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-white text-slate-500">Demo Credentials</span>
             </div>
         </div>
         
-        <div class="alert alert-info mt-3" role="alert">
-            <strong>Demo Credentials:</strong><br />
-            Admin: admin@statstock.com / Admin123!<br />
-            Manager: manager@statstock.com / Manager123!<br />
-            Staff: staff@statstock.com / Staff123!
+        <div class="mt-4 grid gap-2">
+             <div class="relative group bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:border-primary-300 transition-colors cursor-pointer" onclick="fillCreds('admin@statstock.com', 'Admin123!')">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Admin</span>
+                        <span class="text-xs text-slate-600 font-mono">admin@statstock.com</span>
+                    </div>
+                    <span class="text-xs text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">Use</span>
+                </div>
+            </div>
+             <div class="relative group bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:border-primary-300 transition-colors cursor-pointer" onclick="fillCreds('manager@statstock.com', 'Manager123!')">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Manager</span>
+                        <span class="text-xs text-slate-600 font-mono">manager@statstock.com</span>
+                    </div>
+                    <span class="text-xs text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">Use</span>
+                </div>
+            </div>
+            <div class="relative group bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:border-primary-300 transition-colors cursor-pointer" onclick="fillCreds('staff@statstock.com', 'Staff123!')">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Staff</span>
+                        <span class="text-xs text-slate-600 font-mono">staff@statstock.com</span>
+                    </div>
+                    <span class="text-xs text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">Use</span>
+                </div>
+            </div>
+            <div class="relative group bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:border-primary-300 transition-colors cursor-pointer" onclick="fillCreds('client@statstock.com', 'Client123!')">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">Client</span>
+                        <span class="text-xs text-slate-600 font-mono">client@statstock.com</span>
+                    </div>
+                    <span class="text-xs text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity">Use</span>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <div class="mt-6 text-center">
+        <a asp-action="Register" class="font-medium text-primary-600 hover:text-primary-500 transition-colors">
+            Don't have an account? Create one
+        </a>
+    </div>
 </div>
+
+<script>
+    function fillCreds(email, pass) {
+        document.getElementById('Email').value = email;
+        document.getElementById('Password').value = pass;
+    }
+</script>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
