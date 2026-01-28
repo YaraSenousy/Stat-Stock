@@ -397,17 +397,19 @@ Stat-Stock/
 - [x] ~~Inventory valuation report~~
 - [x] ~~Sales trends report~~
 
-### Phase 8: Advanced Features
-- [ ] User authentication system (without Identity)
-- [ ] User management (Create, Edit, Delete users)
-- [ ] Role-based access control
-- [ ] Audit trail with user tracking
+### Phase 8: Authentication and User Managment
+- [x] User authentication system (without Identity)
+- [x] User management (Create, Edit, Delete users)
+- [x] Role-based access control
+- [x] Audit trail with user tracking
+
+### Phase 9: Advanced Features (optional)
 - [ ] In-app notification system
 - [ ] Barcode/QR code scanning for Terminal
 - [ ] Batch entry (multiple products in one shipment)
 - [ ] Expiration/shelf-life tracking
 
-### Phase 9: Polish & Testing (Day 3)
+### Phase 10: Polish & Testing
 - [ ] Write unit tests for core features
 - [ ] Integration tests for API
 - [ ] UI/UX improvements

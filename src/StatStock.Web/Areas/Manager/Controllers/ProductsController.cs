@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Infrastructure.Data;
@@ -7,6 +8,7 @@ using System.Text;
 namespace StatStock.Web.Areas.Manager.Controllers;
 
 [Area("Manager")]
+[Authorize(Roles = "Admin,Manager")]
 public class ProductsController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -386,9 +388,9 @@ public class ProductsController : Controller
                 // Skip header
                 await reader.ReadLineAsync();
 
-                while (!reader.EndOfStream)
+                string? line;
+                while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    var line = await reader.ReadLineAsync();
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
                     try

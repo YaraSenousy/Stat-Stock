@@ -1,26 +1,40 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StatStock.Domain.Entities;
-using StatStock.Infrastructure.Identity;
 
 namespace StatStock.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationIdentityUser>
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
+    public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // ApplicationUser configuration
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.UserName).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasMaxLength(500);
+            entity.Property(e => e.Role).HasConversion<string>();
+            entity.Property(e => e.Area).HasMaxLength(100);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.UserName).IsUnique();
+        });
 
         // Product configuration
         modelBuilder.Entity<Product>(entity =>
@@ -76,13 +90,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationIdentityUser>
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // ApplicationIdentityUser configuration
-        modelBuilder.Entity<ApplicationIdentityUser>(entity =>
+        // AuditLog configuration
+        modelBuilder.Entity<AuditLog>(entity =>
         {
-            entity.Property(e => e.FirstName).HasMaxLength(100);
-            entity.Property(e => e.LastName).HasMaxLength(100);
-            entity.Property(e => e.Role).HasConversion<string>();
-            entity.Property(e => e.Area).HasMaxLength(100);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).HasMaxLength(450);
+            entity.Property(e => e.UserEmail).HasMaxLength(256);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EntityId).HasMaxLength(100);
+            entity.Property(e => e.IpAddress).HasMaxLength(45);
+            entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => e.UserId);
         });
     }
 }

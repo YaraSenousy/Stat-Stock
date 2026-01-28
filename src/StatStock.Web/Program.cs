@@ -3,7 +3,6 @@ using Serilog;
 using StatStock.Infrastructure.Data;
 using StatStock.Infrastructure.Data.Seeders;
 using StatStock.Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -39,7 +38,12 @@ try
     if (OperatingSystem.IsWindows())
     {
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        {
+            options.UseSqlServer(connectionString);
+            // Suppress pending model changes warning
+            options.ConfigureWarnings(warnings => 
+                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
     }
     else
     {
@@ -54,17 +58,24 @@ try
         Log.Information("Using SQLite database for non-Windows environment");
     }
 
-    // Add Authentication: Cookie for MVC + JWT for API
+    // Configure Authentication (Custom implementation without ASP.NET Identity)
+    // Using cookie-based authentication for MVC and JWT for API
     var jwtKey = builder.Configuration["Jwt:Key"] ?? "ReplaceThisWithSecretKey123!";
+    
     builder.Services.AddAuthentication(options =>
     {
-        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+        options.Cookie.Name = "StatStockAuth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
@@ -81,6 +92,8 @@ try
     builder.Services.AddScoped<ITokenService, TokenService>();
     builder.Services.AddScoped<IWebhookService, WebhookService>();
     builder.Services.AddScoped<IReportService, ReportService>();
+    builder.Services.AddScoped<IAuditService, AuditService>();
+    builder.Services.AddScoped<ICustomUserService, CustomUserService>();
     builder.Services.AddHttpClient();
 
     // Add Swagger
@@ -104,12 +117,13 @@ try
         try
         {
             var context = services.GetRequiredService<ApplicationDbContext>();
+            var userService = services.GetRequiredService<ICustomUserService>();
             
             // Apply migrations
             await context.Database.MigrateAsync();
             
-            // Seed data (without Identity - not supported in .NET 10)
-            await DataSeeder.SeedAsync(context);
+            // Seed data with custom user service for user creation
+            await DataSeeder.SeedAsync(context, userService);
             Log.Information("Database seeded successfully");
         }
         catch (Exception ex)
