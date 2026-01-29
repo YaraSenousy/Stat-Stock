@@ -198,18 +198,19 @@ Stat-Stock/
   - Empty states with helpful messages
   - Responsive design
 
-### 🚧 Phase 8: Advanced Features (PLANNED)
+### ✅ Phase 8: Authentication and User Managment
 - User authentication system (custom, no Identity)
 - User management (Create, Edit, Delete users)
 - Role-based access control
 - Audit trail with user tracking
-- Email notifications for approvals
+
+### 🚧 Phase 9: Advanced Features
 - In-app notification system
 - Barcode/QR code scanning for Terminal
 - Batch entry (multiple products in one shipment)
 - Expiration/shelf-life tracking
 
-### 🚧 Phase 9: Polish & Testing (PLANNED)
+### 🚧 Phase 10: Polish & Testing (PLANNED)
 - Unit tests for core features
 - Integration tests for API
 - UI/UX improvements
