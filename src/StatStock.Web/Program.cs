@@ -34,28 +34,32 @@ try
     builder.Services.AddSignalR();
 
     // Add DbContext - Use SQLite for Linux/testing, SQL Server for Windows/production
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    if (OperatingSystem.IsWindows())
+    // Skip if Testing environment (integration tests will configure their own)
+    if (!builder.Environment.IsEnvironment("Testing"))
     {
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (OperatingSystem.IsWindows())
         {
-            options.UseSqlServer(connectionString);
-            // Suppress pending model changes warning
-            options.ConfigureWarnings(warnings => 
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        });
-    }
-    else
-    {
-        // Use SQLite for non-Windows environments (Linux/Mac)
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                options.UseSqlServer(connectionString);
+                // Suppress pending model changes warning
+                options.ConfigureWarnings(warnings => 
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            });
+        }
+        else
         {
-            options.UseSqlite("Data Source=StatStock.db");
-            // Suppress pending model changes warning
-            options.ConfigureWarnings(warnings => 
-                warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
-        });
-        Log.Information("Using SQLite database for non-Windows environment");
+            // Use SQLite for non-Windows environments (Linux/Mac)
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                options.UseSqlite("Data Source=StatStock.db");
+                // Suppress pending model changes warning
+                options.ConfigureWarnings(warnings => 
+                    warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            });
+            Log.Information("Using SQLite database for non-Windows environment");
+        }
     }
 
     // Configure Authentication (Custom implementation without ASP.NET Identity)
@@ -110,25 +114,28 @@ try
 
     var app = builder.Build();
 
-    // Seed database
-    using (var scope = app.Services.CreateScope())
+    // Seed database (skip in test environment)
+    if (!app.Environment.EnvironmentName.Equals("Testing", StringComparison.OrdinalIgnoreCase))
     {
-        var services = scope.ServiceProvider;
-        try
+        using (var scope = app.Services.CreateScope())
         {
-            var context = services.GetRequiredService<ApplicationDbContext>();
-            var userService = services.GetRequiredService<ICustomUserService>();
-            
-            // Apply migrations
-            await context.Database.MigrateAsync();
-            
-            // Seed data with custom user service for user creation
-            await DataSeeder.SeedAsync(context, userService);
-            Log.Information("Database seeded successfully");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "An error occurred while seeding the database");
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<ApplicationDbContext>();
+                var userService = services.GetRequiredService<ICustomUserService>();
+                
+                // Apply migrations
+                await context.Database.MigrateAsync();
+                
+                // Seed data with custom user service for user creation
+                await DataSeeder.SeedAsync(context, userService);
+                Log.Information("Database seeded successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while seeding the database");
+            }
         }
     }
 
@@ -183,3 +190,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Make the implicit Program class public for integration tests
+public partial class Program { }
